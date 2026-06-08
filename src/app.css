@@ -939,12 +939,108 @@ textarea:focus {
 .footer-logo:hover { opacity: 0.85; }
 
 /* ══════════════════════════════════════════════════════════════
-   RESPONSIVE
+   MOBILE VIEW & RESPONSIVE (SPRINT 2)
    ══════════════════════════════════════════════════════════════ */
-@media (max-width: 680px) {
-  .week-grid { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 600px) {
+  .week-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .day-col { border-radius: 12px; border: 1px solid var(--border); padding-bottom: 12px; }
+  .day-header { padding: 12px; font-size: 16px; }
+  .app { padding: 1rem 0.75rem 2rem; }
+  
+  /* Header stacking */
+  .header { flex-direction: column; align-items: stretch; gap: 12px; }
+  .header-left { flex-direction: column; align-items: flex-start; }
+  .mvw-chips { flex-wrap: wrap; margin-left: 0; }
+  .header-right { justify-content: flex-end; }
+  
+  /* Touch targets (minimum 44x44px for buttons) */
+  .btn, .icon-btn, .review-toggle { min-height: 44px; }
+  .icon-btn { min-width: 44px; display: flex; align-items: center; justify-content: center; }
+  .del-btn, .edit-btn { width: 28px; height: 28px; font-size: 14px; }
+  
+  /* Sessions padding */
+  .session { padding: 12px 14px; font-size: 14px; min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; }
+  .session .note { font-size: 11px; display: block; width: 100%; margin-top: 4px; }
+  .check { width: 18px; height: 18px; font-size: 10px; top: 50%; transform: translateY(-50%); right: 12px; }
+  .session.checkable { padding-right: 40px; }
+  
+  /* Inputs */
+  input, textarea, .add-day-btn { min-height: 44px; }
+  .type-picker { flex-wrap: wrap; gap: 8px; }
+  .type-opt { padding: 8px 12px; font-size: 12px; }
+  
+  .review-card, .tasks-section { border-radius: 12px; margin-top: 1.5rem; }
+
+  /* Empty days collapse */
+  .day-col.empty { padding-bottom: 0; min-height: 54px; display: flex; align-items: center; justify-content: space-between; }
+  .day-col.empty .day-header { padding: 0 12px; margin: 0; border: none; }
+  .day-col.empty .add-day-btn { width: auto; min-height: 32px; padding: 6px 12px; margin: 0 12px 0 0; }
 }
-@media (max-width: 420px) {
-  .week-grid { grid-template-columns: repeat(2, 1fr); }
-  .app { padding: 1.25rem 1rem 2rem; }
+
+/* ── Mobile Tab Bar (Navigation) ── */
+.mobile-tabs {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  padding: 10px 0;
+  margin: 0 -0.75rem 1rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  gap: 8px;
+}
+.mobile-tabs::-webkit-scrollbar { display: none; }
+@media (max-width: 600px) {
+  .mobile-tabs { display: flex; padding-left: 0.75rem; padding-right: 0.75rem; }
+}
+.tab-chip {
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.tab-chip.active {
+  background: var(--purple-bg);
+  color: var(--purple);
+  border-color: var(--purple-dim);
+}
+
+/* ── Touch Reorder Mode ── */
+.reorder-mode {
+  position: relative;
+  z-index: 50;
+  box-shadow: 0 0 0 2px var(--purple) !important;
+  transform: scale(1.02);
+}
+.reorder-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+}
+.reorder-btn {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text);
+}
+.reorder-btn:active { background: var(--surface-hover); }
+.reorder-select {
+  flex: 2;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 14px;
+  color: var(--text);
 }

@@ -4,5 +4,12 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 export default defineConfig({
   plugins: [svelte()],
   root: '.',
-  publicDir: 'public',
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    server: { deps: { inline: ['@testing-library/svelte'] } }
+  },
+  resolve: {
+    conditions: process.env.VITEST ? ['browser'] : undefined
+  }
 });
