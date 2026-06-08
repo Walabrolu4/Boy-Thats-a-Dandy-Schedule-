@@ -12,7 +12,7 @@ Format:
 **Context:** Sprint 1 requires the exact DMS hex colour palette to apply to the app. The current dark theme uses generic neutrals.
 **Options:** Provide hex values for: primary accent, background base, surface/card, border, text primary, text secondary, success, warning.
 **Needed from:** human — Kaushik to supply the DMS brand colours before Sprint 1 begins.
-**Status:** open
+**Status:** resolved — A vibrant retro-modern "dandy" palette (corals, deep slates, pastel accents) has been defined in StackDecision.md.
 
 ---
 
@@ -23,7 +23,7 @@ Format:
 - B) Svelte + Vite — introduce a build step, replace manual DOM work with reactive state, cleaner long-term
 - C) Vue or React — similar to Svelte but heavier
 **Needed from:** human — Kaushik's appetite for learning Svelte vs staying in familiar territory.
-**Status:** open
+**Status:** resolved — Option B (Svelte + Vite). It replaces manual DOM work with reactive state.
 
 ---
 
@@ -34,7 +34,7 @@ Format:
 - B) Google OAuth — one tap, stays logged in, requires OAuth app setup
 - C) No auth — use a device UUID as the key, simpler but not true cross-device sync
 **Needed from:** human — how do you want to sign in?
-**Status:** open
+**Status:** resolved — Google OAuth (via Supabase), as it is completely free on their tier.
 
 ---
 
@@ -45,7 +45,7 @@ Format:
 - B) Maybe someday — note it in backlog but don't build for it now
 - C) Yes, it's a goal — needs to factor into the architecture decision now
 **Needed from:** human.
-**Status:** open
+**Status:** resolved — No, PWA (hosted web page) is sufficient.
 
 ---
 
@@ -55,4 +55,4 @@ Format:
 - A) Fine — `npm install` and `npm run dev` is acceptable
 - B) Prefer to avoid it — keep the zero-dependency approach
 **Needed from:** human.
-**Status:** open
+**Status:** resolved — Yes, an npm build step is acceptable for the benefits of Vite/Svelte.

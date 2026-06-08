@@ -7,23 +7,22 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 
 ## Stack Research & Planning
 
-- 🔲 Evaluate and decide frontend approach (vanilla JS vs Svelte vs Vue vs React) `→ Sprint 0.1`
-- 🔲 Evaluate and decide build tool (none vs Vite) `→ Sprint 0.1`
-- 🔲 Evaluate and decide backend/sync (Supabase vs Firebase vs PocketBase vs Convex) `→ Sprint 0.1`
-- 🔲 Evaluate and decide auth strategy (magic link vs OAuth vs no-auth) `→ Sprint 0.1`
-- 🔲 Evaluate and decide hosting (Vercel vs GitHub Pages vs Netlify) `→ Sprint 0.1`
-- 🔲 Evaluate and decide distribution (PWA vs Tauri vs Capacitor) `→ Sprint 0.1`
-- 🔲 Evaluate and decide testing framework (node:test vs Vitest vs Jest) `→ Sprint 0.1`
-- 🔲 `docs/StackDecision.md` produced, Features and Sprints updated to reflect chosen stack `→ Sprint 0.1`
+- ✅ Evaluate and decide frontend approach (vanilla JS vs Svelte vs Vue vs React) `→ Sprint 0.1`
+- ✅ Evaluate and decide build tool (none vs Vite) `→ Sprint 0.1`
+- ✅ Evaluate and decide backend/sync (Supabase vs Firebase vs PocketBase vs Convex) `→ Sprint 0.1`
+- ✅ Evaluate and decide auth strategy (magic link vs OAuth vs no-auth) `→ Sprint 0.1`
+- ✅ Evaluate and decide hosting (Vercel vs GitHub Pages vs Netlify vs Cloudflare) `→ Sprint 0.1`
+- ✅ Evaluate and decide distribution (PWA vs Tauri vs Capacitor) `→ Sprint 0.1`
+- ✅ Evaluate and decide testing framework (node:test vs Vitest vs Jest) `→ Sprint 0.1`
+- ✅ `docs/StackDecision.md` produced, Features and Sprints updated to reflect chosen stack `→ Sprint 0.1`
 
 ---
 
 ## Testing & Quality
 
-- 🔲 Unit test suite for pure logic functions (MVW calculation, date helpers, server upsert) `→ Sprint 0.5`
-- 🔲 Test runner script (`node tests/run.js`) — no npm, uses Node's built-in `node:test` module `→ Sprint 0.5`
-- 🔲 `test.bat` one-click test launcher for Windows `→ Sprint 0.5`
-- 🔲 Tests run and pass before every commit (documented in workflow, not automated yet) `→ Sprint 0.5`
+- 🔲 Unit test suite for pure logic functions using Vitest `→ Sprint 0.5`
+- 🔲 Test runner script (`npm run test`) `→ Sprint 0.5`
+- 🔲 Tests run and pass before every commit `→ Sprint 0.5`
 
 ---
 
@@ -98,15 +97,13 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 
 ## Architecture / Developer
 
-- ✅ Modular JS (data, storage, state, mvw, drag, edit, render, app, export)
-- ✅ No build step — plain `<script>` tags, works as static files
-- ✅ Local Node.js server (`server.js`) for file writes — no npm dependencies
-- ✅ `start.bat` one-click launcher
-- ✅ Dev reset button (clears all localStorage)
-- 🔲 Unit test suite `→ Sprint 0.5`
+- ✅ Modular JS (current state)
+- ✅ Local Node.js server (`server.js`) for file writes
+- 🔲 Migrate frontend to Svelte + Vite build step `→ Sprint 0.2` (New Sprint before Supabase)
+- 🔲 Unit test suite (Vitest) `→ Sprint 0.5`
 - 🔲 Migrate from local server to Supabase backend `→ Sprint 5`
 - 🔲 PWA manifest + service worker (installable, offline support) `→ Sprint 6`
-- 🔲 Rewrite as Tauri + Svelte desktop app (longer-term, post v1.0 backlog)
+- 🔲 Deploy to Cloudflare Pages `→ Sprint 6`
 
 ---
 

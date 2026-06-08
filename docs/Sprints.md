@@ -55,67 +55,67 @@ The current app is vanilla HTML/CSS/JS + a local Node server. The end goals are:
 The following decisions must be made before Sprint 0.5 begins.
 
 ### Research — Frontend Approach
-- [ ] **Option A — Stay vanilla JS:** no build step, no framework, extend current architecture. Simple but manual DOM work scales poorly as features grow.
-- [ ] **Option B — Add Svelte (via Vite):** introduces a build step but eliminates all manual `render()` calls. Reactive state replaces `state.js`. Small bundle, gentle learning curve.
-- [ ] **Option C — Add Vue (via Vite):** similar to Svelte, slightly more verbose, larger ecosystem.
-- [ ] **Option D — React:** most ecosystem support, heavier, more boilerplate than needed for this scope.
-- [ ] For each option, answer: Does it change the no-npm server constraint? Does it require learning a new mental model? How much of the existing code carries forward?
-- [ ] **Decide and document:** which frontend approach, and why.
+- [x] **Option A — Stay vanilla JS:** no build step, no framework, extend current architecture. Simple but manual DOM work scales poorly as features grow.
+- [x] **Option B — Add Svelte (via Vite):** introduces a build step but eliminates all manual `render()` calls. Reactive state replaces `state.js`. Small bundle, gentle learning curve.
+- [x] **Option C — Add Vue (via Vite):** similar to Svelte, slightly more verbose, larger ecosystem.
+- [x] **Option D — React:** most ecosystem support, heavier, more boilerplate than needed for this scope.
+- [x] For each option, answer: Does it change the no-npm server constraint? Does it require learning a new mental model? How much of the existing code carries forward?
+- [x] **Decide and document:** which frontend approach, and why.
 
 ### Research — Build Tool
-- [ ] **Option A — No build tool (current):** `<script src="">` tags, file:// compatible, zero config. Adding a framework requires one.
-- [ ] **Option B — Vite:** fastest build tool available, minimal config, native ES modules in dev, excellent for Svelte/Vue/vanilla. Would require serving via `vite dev` instead of `node server.js` during development.
-- [ ] Consider: does adding a build step add meaningful friction to the vibe-coding workflow?
-- [ ] **Decide and document:** build tool or not, and why.
+- [x] **Option A — No build tool (current):** `<script src="">` tags, file:// compatible, zero config. Adding a framework requires one.
+- [x] **Option B — Vite:** fastest build tool available, minimal config, native ES modules in dev, excellent for Svelte/Vue/vanilla. Would require serving via `vite dev` instead of `node server.js` during development.
+- [x] Consider: does adding a build step add meaningful friction to the vibe-coding workflow?
+- [x] **Decide and document:** build tool or not, and why.
 
 ### Research — Backend / Sync
-- [ ] **Supabase (current plan):** hosted Postgres + auth + realtime. Free tier: 500MB, pauses after 1 week inactivity. SDK works directly from browser JS. No server needed.
-- [ ] **Firebase / Firestore:** Google's equivalent. Free Spark plan. NoSQL (easier for this data shape than Postgres). No project pause on inactivity. More vendor lock-in.
-- [ ] **PocketBase:** self-hosted, single binary, SQLite-backed. Free if hosted on a cheap VPS (~$5/mo). More control, more ops work.
-- [ ] **Convex:** reactive database, free tier, built-in sync and functions. More opinionated.
-- [ ] For each: free tier longevity, offline-first support, complexity of SDK, auth story.
-- [ ] **Decide and document:** which backend, and why.
+- [x] **Supabase (current plan):** hosted Postgres + auth + realtime. Free tier: 500MB, pauses after 1 week inactivity. SDK works directly from browser JS. No server needed.
+- [x] **Firebase / Firestore:** Google's equivalent. Free Spark plan. NoSQL (easier for this data shape than Postgres). No project pause on inactivity. More vendor lock-in.
+- [x] **PocketBase:** self-hosted, single binary, SQLite-backed. Free if hosted on a cheap VPS (~$5/mo). More control, more ops work.
+- [x] **Convex:** reactive database, free tier, built-in sync and functions. More opinionated.
+- [x] For each: free tier longevity, offline-first support, complexity of SDK, auth story.
+- [x] **Decide and document:** which backend, and why.
 
 ### Research — Auth Strategy
-- [ ] **Magic link email (Supabase/Firebase built-in):** passwordless, no account setup friction. Requires email access.
-- [ ] **Google OAuth:** one-tap sign-in, familiar. Requires OAuth app setup in Google Console.
-- [ ] **No auth (device-only):** skip auth entirely, use a device-specific UUID as the user key. Simpler, but no true cross-device sync.
-- [ ] Consider: this is a single-user personal tool. Is full auth worth the complexity?
-- [ ] **Decide and document:** auth approach, and why.
+- [x] **Magic link email (Supabase/Firebase built-in):** passwordless, no account setup friction. Requires email access.
+- [x] **Google OAuth:** one-tap sign-in, familiar. Requires OAuth app setup in Google Console.
+- [x] **No auth (device-only):** skip auth entirely, use a device-specific UUID as the key. Simpler, but no true cross-device sync.
+- [x] Consider: this is a single-user personal tool. Is full auth worth the complexity?
+- [x] **Decide and document:** auth approach, and why.
 
 ### Research — Hosting
-- [ ] **Vercel:** free tier, deploys from GitHub push, environment variables, HTTPS automatic. Best fit if using Vite build.
-- [ ] **GitHub Pages:** free, static only, no environment variables (keys must be baked in or fetched at runtime). Works if no build step.
-- [ ] **Netlify:** similar to Vercel, free tier, slightly different DX.
-- [ ] Consider: Supabase anon key is public-safe (RLS protects data), so baking it into a GitHub Pages deploy is acceptable.
-- [ ] **Decide and document:** hosting, and why.
+- [x] **Cloudflare Pages:** Integrates beautifully with Vite builds and is incredibly fast globally.
+- [x] **Vercel:** free tier, deploys from GitHub push, environment variables, HTTPS automatic. Best fit if using Vite build.
+- [x] **GitHub Pages:** free, static only, no environment variables.
+- [x] Consider: Supabase anon key is public-safe.
+- [x] **Decide and document:** hosting, and why.
 
 ### Research — PWA vs Native vs Hybrid
-- [ ] **PWA (current plan):** no app store, installable via browser, works offline via service worker. Free. Some iOS Safari limitations.
-- [ ] **Tauri:** true native binary, tiny size, Rust backend. Requires Rust toolchain, no mobile support yet (Tauri v2 has experimental mobile).
-- [ ] **Capacitor:** wraps a web app in a native shell, deploys to iOS/Android App Store. Requires Apple Developer ($99/yr) and/or Google Play ($25 one-time). Heavy setup.
-- [ ] Consider: the primary install targets are phone home screen and maybe desktop. PWA covers both for free. App Store distribution is not a stated goal.
-- [ ] **Decide and document:** distribution approach, and why.
+- [x] **PWA (current plan):** no app store, installable via browser, works offline via service worker. Free. Some iOS Safari limitations.
+- [x] **Tauri:** true native binary, tiny size, Rust backend. Requires Rust toolchain, no mobile support yet (Tauri v2 has experimental mobile).
+- [x] **Capacitor:** wraps a web app in a native shell, deploys to iOS/Android App Store. Requires Apple Developer ($99/yr) and/or Google Play ($25 one-time). Heavy setup.
+- [x] Consider: the primary install targets are phone home screen and maybe desktop. PWA covers both for free. App Store distribution is not a stated goal.
+- [x] **Decide and document:** distribution approach, and why.
 
 ### Research — Testing Framework
-- [ ] **Node built-in `node:test`:** no npm, stable since Node 18. Limited features but sufficient for pure logic tests.
-- [ ] **Vitest:** pairs naturally with Vite, fast, supports browser-mode for DOM testing. Requires npm.
-- [ ] **Jest:** most widely used, large ecosystem, works without a bundler. Requires npm.
-- [ ] Consider: if we're adding a build step for the frontend anyway, adding a test dependency (Vitest) costs nothing extra.
-- [ ] **Decide and document:** test framework, and why.
+- [x] **Node built-in `node:test`:** no npm, stable since Node 18. Limited features but sufficient for pure logic tests.
+- [x] **Vitest:** pairs naturally with Vite, fast, supports browser-mode for DOM testing. Requires npm.
+- [x] **Jest:** most widely used, large ecosystem, works without a bundler. Requires npm.
+- [x] Consider: if we're adding a build step for the frontend anyway, adding a test dependency (Vitest) costs nothing extra.
+- [x] **Decide and document:** test framework, and why.
 
 ### Output — Stack Decision Document
-- [ ] Create `docs/StackDecision.md` with the following sections:
+- [x] Create `docs/StackDecision.md` with the following sections:
   - **Chosen stack** (one-liner summary table: Frontend / Build / Backend / Auth / Hosting / Distribution / Testing)
   - **Decision rationale** for each choice (2–4 sentences each)
   - **What changes in the plan** — list any sprints or features that need to be updated based on the decisions
   - **Risks and open questions** — anything still uncertain
-- [ ] Review `docs/Features.md` — update or add features if the chosen stack introduces new requirements or removes old ones (e.g. if Vite is added, note it in Architecture section)
-- [ ] Review `docs/Sprints.md` — update sprint steps if the chosen stack changes the approach (e.g. if Vitest replaces `node:test`, update Sprint 0.5 accordingly)
-- [ ] Update `docs/Questions.md` — mark any questions resolved by this research; add new ones if decisions raised further questions
-- [ ] Add a note to `docs/Notes.md` summarising the chosen stack and the key reasons
-- [ ] Commit: `git commit -m "Sprint 0.1: Stack research and decision"`
-- [ ] Push to GitHub
+- [x] Review `docs/Features.md` — update or add features if the chosen stack introduces new requirements or removes old ones (e.g. if Vite is added, note it in Architecture section)
+- [x] Review `docs/Sprints.md` — update sprint steps if the chosen stack changes the approach (e.g. if Vitest replaces `node:test`, update Sprint 0.5 accordingly)
+- [x] Update `docs/Questions.md` — mark any questions resolved by this research; add new ones if decisions raised further questions
+- [x] Add a note to `docs/Notes.md` summarising the chosen stack and the key reasons
+- [x] Commit: `git commit -m "Sprint 0.1: Stack research and decision"`
+- [x] Push to GitHub
 
 ---
 
@@ -126,11 +126,11 @@ The following decisions must be made before Sprint 0.5 begins.
 > Run this sprint before any feature work. Tests lock in correct behaviour so that future sprints have a safety net.
 
 ### Test Infrastructure
+- [ ] `npm install -D vitest`
+- [ ] Update `package.json` to include `"test": "vitest"` script
 - [ ] Create `tests/` folder in the project root
-- [ ] Create `tests/run.js` — the test entry point; imports and runs all test files using `node:test`
-- [ ] Create `test.bat` in the project root: `node "%~dp0tests/run.js"` with `pause` (mirrors `start.bat` pattern)
-- [ ] Confirm `node tests/run.js` runs without error (even with no tests yet) from the VSCode terminal
-- [ ] Add a comment block at the top of `run.js` explaining how to add new test files
+- [ ] Ensure Vitest runs and discovers tests
+- [ ] Add a comment block explaining how to add new test files
 
 ### Tests — `storage.js` (date helpers)
 - [ ] Create `tests/storage.test.js`
@@ -475,9 +475,9 @@ The following decisions must be made before Sprint 0.5 begins.
 - [ ] Test: app loads fully with network disabled in DevTools
 
 ### Hosting
-- [ ] Connect GitHub repo to Vercel
-- [ ] Set correct publish directory
-- [ ] Add Supabase env vars in Vercel dashboard
+- [ ] Connect GitHub repo to Cloudflare Pages
+- [ ] Set build command to `npm run build` and output directory to `dist`
+- [ ] Add Supabase env vars in Cloudflare dashboard
 - [ ] Confirm deployed URL loads and syncs correctly
 - [ ] Update `README.md` with live URL
 
