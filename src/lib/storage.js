@@ -81,3 +81,13 @@ export function getState() {
 export function saveState(s) {
   localStorage.setItem(getWeekKey(), JSON.stringify(s));
 }
+
+// ── Theme ──
+
+export function getTheme() {
+  return localStorage.getItem('ls-theme') || 'purple';
+}
+
+export function saveTheme(theme) {
+  localStorage.setItem('ls-theme', theme);
+}

@@ -3,6 +3,7 @@
   import WeekGrid from './components/WeekGrid.svelte';
   import TasksSection from './components/TasksSection.svelte';
   import ReviewCard from './components/ReviewCard.svelte';
+  import ThemePicker from './components/ThemePicker.svelte';
 
   import { getState, saveState, getWeekRange } from './lib/storage.js';
 
@@ -53,6 +54,7 @@
       <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">
+      <ThemePicker />
       <button class="btn {editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode}>
         Edit schedule
       </button>

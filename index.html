@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Pacifico&display=swap" rel="stylesheet">
+  <script>
+    // Apply theme immediately to prevent flashing
+    var theme = localStorage.getItem('ls-theme') || 'purple';
+    document.documentElement.setAttribute('data-theme', theme);
+  </script>
 </head>
 <body>
   <div id="app"></div>
