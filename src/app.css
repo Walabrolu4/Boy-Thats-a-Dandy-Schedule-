@@ -405,14 +405,78 @@ body {
    MVW CHIPS
    ══════════════════════════════════════════════════════════════ */
 .mvw-section { margin-bottom: 1.5rem; }
+.mvw-header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 7px;
+}
 .mvw-label {
   font-size: 10px;
   font-weight: 600;
   color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.10em;
-  margin-bottom: 7px;
 }
+.mvw-edit-btn {
+  background: none;
+  border: none;
+  color: var(--purple);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 0;
+}
+.mvw-edit-btn:hover { text-decoration: underline; }
+
+.mvw-config-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--bg);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.config-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+.config-controls button {
+  background: var(--surface-hover);
+  border: none;
+  color: var(--text);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.config-controls button:hover {
+  background: var(--purple);
+  color: #fff;
+}
+
 .mvw-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .chip {

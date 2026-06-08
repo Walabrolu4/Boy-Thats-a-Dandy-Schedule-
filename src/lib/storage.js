@@ -91,3 +91,26 @@ export function getTheme() {
 export function saveTheme(theme) {
   localStorage.setItem('ls-theme', theme);
 }
+
+// ── MVW Config ──
+
+export const DEFAULT_MVW_CONFIG = {
+  stretch:  { target: 5, outOf: 7 },
+  meditate: { target: 5, outOf: 7 },
+  prog:     { target: 1 },
+  draw:     { target: 1 },
+  keys:     { target: 1 },
+  exer:     { target: 2, outOf: 3 }
+};
+
+export function getMVWConfig() {
+  const raw = localStorage.getItem('ls-mvw-config');
+  if (raw) {
+    try { return JSON.parse(raw); } catch (e) { /* fall through */ }
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_MVW_CONFIG));
+}
+
+export function saveMVWConfig(config) {
+  localStorage.setItem('ls-mvw-config', JSON.stringify(config));
+}
