@@ -4,28 +4,28 @@
   import TasksSection from './components/TasksSection.svelte';
   import ReviewCard from './components/ReviewCard.svelte';
 
-  import { getState, saveState, getWeekRange, getSchedule } from './lib/storage.js';
+  import { getState, saveState, getWeekRange } from './lib/storage.js';
 
-  // ── App state ──
-  let weekState = getState();
-  let editMode = false;
-  let weekGrid; // bind to WeekGrid for calling refresh()
-  let tasksSection; // bind to TasksSection for calling refresh()
+  // weekState drives all checkmark/task/review rendering
+  let weekState = $state(getState());
+  // scheduleVersion increments whenever the schedule or tasks list changes,
+  // telling WeekGrid / TasksSection to re-read from localStorage
+  let scheduleVersion = $state(0);
+  let editMode = $state(false);
 
-  $: weekRange = getWeekRange();
+  const weekRange = getWeekRange();
 
-  // Called by child components whenever weekState is mutated
   function handleStateChange(newState) {
-    weekState = newState;
+    weekState = { ...newState };
     saveState(weekState);
+  }
+
+  function handleScheduleChange() {
+    scheduleVersion += 1;
   }
 
   function toggleEditMode() {
     editMode = !editMode;
-    if (!editMode) {
-      // Reset any open add forms by refreshing children
-      if (weekGrid) weekGrid.refresh();
-    }
   }
 
   function resetWeek() {
@@ -41,8 +41,7 @@
       .forEach(k => localStorage.removeItem(k));
     weekState = getState();
     editMode = false;
-    if (weekGrid) weekGrid.refresh();
-    if (tasksSection) tasksSection.refresh();
+    scheduleVersion += 1;
   }
 </script>
 
@@ -51,35 +50,37 @@
   <div class="header">
     <div class="header-left">
       <h1>🌸 Boy, That's a Dandy Schedule! 🌸</h1>
-      <div class="week-label" id="weekLabel">{weekRange}</div>
+      <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">
-      <button class="btn {editMode ? 'active' : ''}" id="editBtn" on:click={toggleEditMode}>
+      <button class="btn {editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode}>
         Edit schedule
       </button>
-      <button class="btn" on:click={resetWeek}>Reset week</button>
-      <button class="btn btn-dev" on:click={devReset} title="Clears all app data from localStorage">
+      <button class="btn" onclick={resetWeek}>Reset week</button>
+      <button class="btn btn-dev" onclick={devReset} title="Clears all app data from localStorage">
         dev: reset all
       </button>
     </div>
   </div>
 
-  <MvwChips {weekState} />
+  <MvwChips {weekState} {scheduleVersion} />
 
   <WeekGrid
-    bind:this={weekGrid}
     {weekState}
     {editMode}
+    {scheduleVersion}
     onStateChange={handleStateChange}
+    onScheduleChange={handleScheduleChange}
   />
 
   <div style="height: 1.5rem;"></div>
 
   <TasksSection
-    bind:this={tasksSection}
     {weekState}
     {editMode}
+    {scheduleVersion}
     onStateChange={handleStateChange}
+    onScheduleChange={handleScheduleChange}
   />
 
   <div style="height: 1rem;"></div>

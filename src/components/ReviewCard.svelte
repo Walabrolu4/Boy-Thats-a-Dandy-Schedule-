@@ -1,19 +1,18 @@
 <script>
-  import { getState, saveState, getWeekRange } from '../lib/storage.js';
   import { saveWeeklyReview } from '../lib/export.js';
 
-  export let weekState;
-  export let onStateChange;
+  let { weekState, onStateChange } = $props();
 
-  let reviewOpen = false;
-  let q1 = '', q2 = '', q3 = '';
+  let reviewOpen = $state(false);
+  let q1 = $state('');
+  let q2 = $state('');
+  let q3 = $state('');
   let reviewTimer = null;
-  let savedFlash = false;
-  let exportFlashMsg = '';
-  let exportFlashVisible = false;
-  let savingReview = false;
+  let savedFlash = $state(false);
+  let exportFlashMsg = $state('');
+  let exportFlashVisible = $state(false);
+  let savingReview = $state(false);
 
-  // Populate textarea values when panel is opened
   function toggleReview() {
     reviewOpen = !reviewOpen;
     if (reviewOpen) {
@@ -37,8 +36,8 @@
   async function handleSaveReview() {
     await saveWeeklyReview({
       onStart:   () => { savingReview = true; },
-      onSuccess: (msg) => { showExportFlash(msg); },
-      onError:   (msg) => { showExportFlash(msg); },
+      onSuccess: (msg) => showExportFlash(msg),
+      onError:   (msg) => showExportFlash(msg),
       onFinally: () => { savingReview = false; },
     });
   }
@@ -51,26 +50,26 @@
 </script>
 
 <div class="review-card">
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <div class="review-toggle" on:click={toggleReview}>
+  <!-- svelte-ignore a11y_no_static_element_interactions --><!-- svelte-ignore a11y_click_events_have_key_events -->
+  <div class="review-toggle" onclick={toggleReview}>
     <span>Weekly review</span>
     <span class="toggle-hint">{reviewOpen ? 'hide ↑' : 'show ↓'}</span>
   </div>
 
   <div class="review-body {reviewOpen ? 'open' : ''}">
     <div class="q-label">Which sessions didn't happen, and why?</div>
-    <textarea bind:value={q1} placeholder="…" on:input={autoSaveReview}></textarea>
+    <textarea bind:value={q1} placeholder="…" oninput={autoSaveReview}></textarea>
 
     <div class="q-label">Where did I get stuck?</div>
-    <textarea bind:value={q2} placeholder="…" on:input={autoSaveReview}></textarea>
+    <textarea bind:value={q2} placeholder="…" oninput={autoSaveReview}></textarea>
 
     <div class="q-label">One thing I want to protect time for next week</div>
-    <textarea bind:value={q3} placeholder="…" on:input={autoSaveReview}></textarea>
+    <textarea bind:value={q3} placeholder="…" oninput={autoSaveReview}></textarea>
 
     <div class="review-footer">
       <button class="save-to-file-btn" id="saveReviewBtn"
         disabled={savingReview}
-        on:click={handleSaveReview}>
+        onclick={handleSaveReview}>
         {savingReview ? 'Saving…' : 'Save to file'}
       </button>
       <span class="saved-flash {exportFlashVisible ? 'show' : ''}">{exportFlashMsg}</span>
