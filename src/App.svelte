@@ -38,7 +38,7 @@
   function devReset() {
     if (!confirm('Delete ALL app data (schedule + all weeks)? This cannot be undone.')) return;
     Object.keys(localStorage)
-      .filter(k => k === 'ls-schedule' || k === 'ls-tasks' || k === 'ls-mvw-config' || k.startsWith('ls-week-'))
+      .filter(k => k === 'ls-schedule' || k === 'ls-tasks' || k === 'ls-tags' || k.startsWith('ls-week-'))
       .forEach(k => localStorage.removeItem(k));
     weekState = getState();
     editMode = false;

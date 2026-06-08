@@ -92,25 +92,26 @@ export function saveTheme(theme) {
   localStorage.setItem('ls-theme', theme);
 }
 
-// ── MVW Config ──
+// ── Tags ──
 
-export const DEFAULT_MVW_CONFIG = {
-  stretch:  { target: 5, outOf: 7 },
-  meditate: { target: 5, outOf: 7 },
-  prog:     { target: 1 },
-  draw:     { target: 1 },
-  keys:     { target: 1 },
-  exer:     { target: 2, outOf: 3 }
-};
-
-export function getMVWConfig() {
-  const raw = localStorage.getItem('ls-mvw-config');
+export function getTags() {
+  const raw = localStorage.getItem('ls-tags');
   if (raw) {
     try { return JSON.parse(raw); } catch (e) { /* fall through */ }
   }
-  return JSON.parse(JSON.stringify(DEFAULT_MVW_CONFIG));
+  return JSON.parse(JSON.stringify(DEFAULT_TAGS));
 }
 
-export function saveMVWConfig(config) {
-  localStorage.setItem('ls-mvw-config', JSON.stringify(config));
+// Need a synchronous getTags for initial render without await
+import { DEFAULT_TAGS } from './data.js';
+export function getTagsSync() {
+  const raw = localStorage.getItem('ls-tags');
+  if (raw) {
+    try { return JSON.parse(raw); } catch (e) { /* fall through */ }
+  }
+  return JSON.parse(JSON.stringify(DEFAULT_TAGS));
+}
+
+export function saveTags(tags) {
+  localStorage.setItem('ls-tags', JSON.stringify(tags));
 }

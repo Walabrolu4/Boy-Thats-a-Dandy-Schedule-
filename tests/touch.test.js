@@ -12,7 +12,11 @@ vi.mock('../src/lib/storage.js', () => {
   return {
     getSchedule: () => JSON.parse(JSON.stringify(mockSchedule)),
     saveSchedule: (s) => { mockSchedule = JSON.parse(JSON.stringify(s)); },
-    getState: () => ({ checked: {} })
+    getState: () => ({ checked: {} }),
+    getTagsSync: () => [
+      { id: 'exer', label: 'Exercise', color: '#3DD68C' },
+      { id: 'draw', label: 'Drawing', color: '#FFD700' }
+    ]
   };
 });
 

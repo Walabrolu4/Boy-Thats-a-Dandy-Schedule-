@@ -1,78 +1,67 @@
 // ── Minimum Viable Week calculation ───────────────────────────────────────
-// Reads the current schedule and checked state, then returns an array of
+// Reads the current schedule, tasks, and checked state, then returns an array of
 // MVW items used to render the chip row.
-//
-// Intentionally type-based (not ID-based) so custom/renamed sessions count
-// correctly — e.g. deleting 'Exercise' and adding 'Arm day' (type: exer)
-// still increments the exercise counter.
 
-import { getSchedule, getTasks, getMVWConfig } from './storage.js';
+import { getSchedule, getTasks, getTagsSync } from './storage.js';
 
 export function getMVW(state) {
-  const checked = state.checked;
+  const checked = state.checked || {};
   const days    = getSchedule();
-  const config  = getMVWConfig();
+  const tags    = getTagsSync();
 
-  let stretches = 0, meditates = 0, exerCount = 0;
-  let progDone  = false, drawDone = false, keysDone = false;
+  // Initialize progress counters for all tags
+  const progress = {};
+  tags.forEach(tag => progress[tag.id] = 0);
 
+  // Count scheduled blocks
   for (const day of days) {
     for (const session of day.sessions) {
+      // Micro sessions traditionally don't count towards some MVWs, 
+      // but let's say they don't count towards anything now, unless specified.
+      // Wait, let's keep it simple: if it's checked, it counts.
+      if (session.micro) continue; 
+      
       if (!checked[`${day.key}-${session.id}`]) continue;
 
-      switch (session.type) {
-        case 'exer':   exerCount++;  break;
-        case 'prog':   progDone  = true; break;
-        case 'draw':   if (!session.micro) drawDone  = true; break;
-        case 'keys':   if (!session.micro) keysDone  = true; break;
-        case 'anchor':
-          if (session.label.toLowerCase().includes('stretch'))  stretches++;
-          if (session.label.toLowerCase().includes('meditat'))  meditates++;
-          break;
+      if (session.tagId && progress[session.tagId] !== undefined) {
+        progress[session.tagId]++;
       }
+    }
+  }
+
+  // Count floating tasks
+  const allTasks = getTasks();
+  for (const task of allTasks) {
+    if (!state.tasks || !state.tasks[task.id]) continue;
+    
+    // If the task belongs to a tag, count it towards the tag
+    if (task.tagId && progress[task.tagId] !== undefined) {
+      progress[task.tagId]++;
     }
   }
 
   const chips = [];
 
-  if (config.stretch.target > 0) {
-    chips.push({
-      id: 'stretch',
-      label: `Stretch ${stretches}/${config.stretch.outOf || config.stretch.target}`,
-      done: stretches >= config.stretch.target,
-      partial: stretches > 0 && stretches < config.stretch.target
-    });
-  }
+  // Generate a chip for every tag with a target > 0
+  tags.forEach(tag => {
+    if (tag.mvwTarget > 0) {
+      const count = progress[tag.id];
+      const target = tag.mvwTarget;
+      const outOf = tag.mvwOutOf;
 
-  if (config.meditate.target > 0) {
-    chips.push({
-      id: 'meditate',
-      label: `Meditate ${meditates}/${config.meditate.outOf || config.meditate.target}`,
-      done: meditates >= config.meditate.target,
-      partial: meditates > 0 && meditates < config.meditate.target
-    });
-  }
+      let label = tag.label;
+      if (outOf || target > 1) {
+        label = `${tag.label} ${count}/${outOf || target}`;
+      }
 
-  if (config.prog.target > 0) chips.push({ id: 'prog', label: 'Programming', done: progDone });
-  if (config.draw.target > 0) chips.push({ id: 'draw', label: 'Drawing',     done: drawDone });
-  if (config.keys.target > 0) chips.push({ id: 'keys', label: 'Keyboard',    done: keysDone });
-
-  if (config.exer.target > 0) {
-    chips.push({
-      id: 'exer',
-      label: `Exercise ${exerCount}/${config.exer.outOf || config.exer.target}`,
-      done: exerCount >= config.exer.target,
-      partial: exerCount > 0 && exerCount < config.exer.target
-    });
-  }
-
-  // One chip per non-scheduled task
-  getTasks().forEach(task => {
-    chips.push({
-      id: task.id,
-      label: task.label,
-      done: !!(state.tasks && state.tasks[task.id])
-    });
+      chips.push({
+        id: tag.id,
+        label,
+        done: count >= target,
+        partial: count > 0 && count < target,
+        color: tag.color // Passed for styling
+      });
+    }
   });
 
   return chips;

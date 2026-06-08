@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { TYPES, LEGEND_ITEMS } from '../lib/data.js';
-  import { getSchedule, saveSchedule } from '../lib/storage.js';
+  import { getSchedule, saveSchedule, getTagsSync } from '../lib/storage.js';
 
   let { weekState, editMode, scheduleVersion, onStateChange, onScheduleChange } = $props();
 
@@ -10,14 +9,19 @@
     return getSchedule();
   });
 
+  let tags = $derived.by(() => {
+    scheduleVersion;
+    return getTagsSync();
+  });
+
   let todayJsDay = new Date().getDay();
   let currentDayKey = $derived(days.find(d => d.jsDay === todayJsDay)?.key || 'mon');
 
   let activeAddDay = $state(null);
-  let pendingType = $state('anchor');
+  let pendingTagId = $state('');
   let pendingMicro = $state(false);
   let editingSession = $state(null);
-  let editingType = $state('anchor');
+  let editingTagId = $state('');
   let editingMicro = $state(false);
   let dragState = $state(null);
   
@@ -44,7 +48,7 @@
   }
 
   function openAddForm(dayKey) {
-    activeAddDay = dayKey; pendingType = 'anchor'; pendingMicro = false;
+    activeAddDay = dayKey; pendingTagId = tags[0]?.id || ''; pendingMicro = false;
     setTimeout(() => document.getElementById(`addname-${dayKey}`)?.focus(), 30);
   }
   function cancelAdd() { activeAddDay = null; pendingMicro = false; }
@@ -56,12 +60,12 @@
     const allDays = getSchedule();
     const d = allDays.find(d => d.key === dayKey);
     if (d) {
-      const session = { id: `custom-${Date.now()}`, label, type: pendingType, note: noteEl?.value.trim() ?? '' };
+      const session = { id: `custom-${Date.now()}`, label, tagId: pendingTagId, note: noteEl?.value.trim() ?? '' };
       if (pendingMicro) session.micro = true;
       d.sessions.push(session);
     }
     saveSchedule(allDays);
-    activeAddDay = null; pendingType = 'anchor'; pendingMicro = false;
+    activeAddDay = null; pendingTagId = ''; pendingMicro = false;
     onScheduleChange();
   }
 
@@ -77,7 +81,7 @@
     const session = d?.sessions.find(s => s.id === sessionId);
     if (!session) return;
     editingSession = { dayKey, sessionId };
-    editingType = session.type; editingMicro = !!session.micro;
+    editingTagId = session.tagId; editingMicro = !!session.micro;
     activeAddDay = null;
     setTimeout(() => { const el = document.getElementById(`edit-label-${sessionId}`); el?.focus(); el?.select(); }, 30);
   }
@@ -90,7 +94,7 @@
     const allDays = getSchedule();
     const session = allDays.find(d => d.key === dayKey)?.sessions.find(s => s.id === sessionId);
     if (!session) return;
-    session.label = label; session.type = editingType; session.note = noteEl?.value.trim() ?? '';
+    session.label = label; session.tagId = editingTagId; session.note = noteEl?.value.trim() ?? '';
     if (editingMicro) session.micro = true; else delete session.micro;
     saveSchedule(allDays);
     editingSession = null; onScheduleChange();
@@ -218,15 +222,17 @@
 
       {#each day.sessions as session}
         {@const isReorder = reorderMode?.dayKey === day.key && reorderMode?.sessionId === session.id}
+        {@const tag = tags.find(t => t.id === session.tagId)}
         {#if editingSession?.dayKey === day.key && editingSession?.sessionId === session.id}
           <div class="add-form">
             <input type="text" id="edit-label-{session.id}" value={session.label}
               onkeydown={e => { if (e.key==='Enter') saveEdit(day.key,session.id); if (e.key==='Escape') cancelEdit(); }}>
             <div class="type-picker">
-              {#each TYPES as t}
+              {#each tags as t}
                 <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-                <span class="type-opt edit-type-opt t-{t} {editingType===t?'selected':''}"
-                  onclick={() => { editingType = t; }}>{t}</span>
+                <span class="type-opt edit-type-opt {editingTagId===t.id?'selected':''}"
+                  style="color: {t.color}; border-color: {t.color}; background: {editingTagId===t.id ? t.color+'40' : 'transparent'}"
+                  onclick={() => { editingTagId = t.id; }}>{t.label}</span>
               {/each}
             </div>
             <input type="text" id="edit-note-{session.id}" value={session.note||''} placeholder="Note (optional)"
@@ -242,7 +248,8 @@
           {@const key = `${day.key}-${session.id}`}
           {@const done = !!weekState.checked[key]}
           <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div class="session t-{session.type} {session.micro?'micro':''} {done?'done':''} {!editMode?'checkable':''} {isReorder?'reorder-mode':''}"
+          <div class="session {session.micro?'micro':''} {done?'done':''} {!editMode?'checkable':''} {isReorder?'reorder-mode':''}"
+            style="{tag ? `color: ${tag.color}; border-color: ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : 'transparent'}` : ''}"
             draggable="true" data-session={key}
             onclick={() => toggle(day.key, session.id)}
             ontouchstart={e => onTouchStart(e, day.key, session.id)}
@@ -287,10 +294,11 @@
             <input type="text" id="addname-{day.key}" placeholder="Session name"
               onkeydown={e => { if (e.key==='Enter') confirmAdd(day.key); if (e.key==='Escape') cancelAdd(); }}>
             <div class="type-picker">
-              {#each TYPES as t}
+              {#each tags as t}
                 <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-                <span class="type-opt t-{t} {pendingType===t?'selected':''}"
-                  onclick={() => { pendingType = t; }}>{t}</span>
+                <span class="type-opt {pendingTagId===t.id?'selected':''}"
+                  style="color: {t.color}; border-color: {t.color}; background: {pendingTagId===t.id ? t.color+'40' : 'transparent'}"
+                  onclick={() => { pendingTagId = t.id; }}>{t.label}</span>
               {/each}
             </div>
             <input type="text" id="addnote-{day.key}" placeholder="Note (optional)"
@@ -311,8 +319,8 @@
 </div>
 
 <div class="legend">
-  {#each LEGEND_ITEMS as l}
-    <span class="legend-item t-{l.type}">{l.label}</span>
+  {#each tags as t}
+    <span class="legend-item" style="color: {t.color}">{t.label}</span>
   {/each}
   <span style="font-size:10px;color:#bbb;padding:2px 0;align-self:center;">faded = micro session</span>
 </div>

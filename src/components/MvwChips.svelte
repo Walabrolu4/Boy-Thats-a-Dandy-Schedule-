@@ -1,11 +1,11 @@
 <script>
   import { getMVW } from '../lib/mvw.js';
-  import { getMVWConfig, saveMVWConfig } from '../lib/storage.js';
+  import { getTagsSync, saveTags } from '../lib/storage.js';
 
   let { weekState, scheduleVersion } = $props();
 
   let showConfig = $state(false);
-  let config = $state(getMVWConfig());
+  let tags = $state(getTagsSync());
   let configVersion = $state(0);
 
   let chips = $derived.by(() => {
@@ -15,34 +15,49 @@
   });
 
   function saveConfig() {
-    saveMVWConfig(config);
+    saveTags(tags);
     configVersion++;
   }
 
-  function adjustTarget(key, delta) {
-    // If it's a count-based one (has outOf), clamp between 0 and outOf
-    if (config[key].outOf !== undefined) {
-      config[key].target = Math.max(0, Math.min(config[key].outOf, config[key].target + delta));
+  function adjustTarget(tag, delta) {
+    if (tag.mvwOutOf !== undefined) {
+      tag.mvwTarget = Math.max(0, Math.min(tag.mvwOutOf, tag.mvwTarget + delta));
     } else {
-      config[key].target = Math.max(0, config[key].target + delta);
+      tag.mvwTarget = Math.max(0, tag.mvwTarget + delta);
     }
     saveConfig();
   }
 
-  function adjustOutOf(key, delta) {
-    if (config[key].outOf !== undefined) {
-      config[key].outOf = Math.max(1, config[key].outOf + delta);
-      // Ensure target doesn't exceed new outOf
-      if (config[key].target > config[key].outOf) {
-        config[key].target = config[key].outOf;
-      }
+  function toggleBool(tag) {
+    tag.mvwTarget = tag.mvwTarget === 0 ? 1 : 0;
+    saveConfig();
+  }
+
+  function updateColor(tag, e) {
+    tag.color = e.target.value;
+    saveConfig();
+  }
+
+  function updateLabel(tag, e) {
+    tag.label = e.target.value;
+    saveConfig();
+  }
+
+  function addTag() {
+    tags.push({
+      id: 'tag-' + Date.now(),
+      label: 'New Goal',
+      color: '#ff00ff',
+      mvwTarget: 1
+    });
+    saveConfig();
+  }
+
+  function deleteTag(tag) {
+    if (confirm(`Delete ${tag.label}? Sessions and tasks using this tag will become untagged.`)) {
+      tags = tags.filter(t => t.id !== tag.id);
       saveConfig();
     }
-  }
-
-  function toggleBool(key) {
-    config[key].target = config[key].target === 0 ? 1 : 0;
-    saveConfig();
   }
 </script>
 
@@ -50,71 +65,46 @@
   <div class="mvw-header-row">
     <div class="mvw-label">Minimum viable week</div>
     <button class="mvw-edit-btn" onclick={() => showConfig = !showConfig}>
-      {showConfig ? 'Close targets' : 'Edit targets'}
+      {showConfig ? 'Close tags' : 'Manage tags'}
     </button>
   </div>
 
   {#if showConfig}
     <div class="mvw-config-panel">
-      <!-- Stretch -->
-      <div class="config-row">
-        <span>Stretch</span>
-        <div class="config-controls">
-          <button onclick={() => adjustTarget('stretch', -1)}>−</button>
-          <span>{config.stretch.target} / {config.stretch.outOf}</span>
-          <button onclick={() => adjustTarget('stretch', 1)}>+</button>
+      {#each tags as tag}
+        <div class="config-row">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <input type="color" value={tag.color} onchange={(e) => updateColor(tag, e)} style="width: 20px; height: 20px; padding: 0; border: none; cursor: pointer; border-radius: 4px; background: none;" title="Tag Colour">
+            <input type="text" value={tag.label} onchange={(e) => updateLabel(tag, e)} style="width: 100px; background: transparent; border: 1px dashed transparent; color: var(--text); font-family: inherit; font-size: inherit; font-weight: inherit;" onfocus={(e) => e.target.style.border='1px dashed var(--border)'} onblur={(e) => e.target.style.border='1px dashed transparent'} title="Rename Tag">
+          </div>
+          
+          <div class="config-controls">
+            {#if tag.mvwOutOf !== undefined}
+              <button onclick={() => adjustTarget(tag, -1)}>−</button>
+              <span>{tag.mvwTarget} / {tag.mvwOutOf}</span>
+              <button onclick={() => adjustTarget(tag, 1)}>+</button>
+            {:else}
+              <button onclick={() => adjustTarget(tag, -1)}>−</button>
+              <span>{tag.mvwTarget}</span>
+              <button onclick={() => adjustTarget(tag, 1)}>+</button>
+              <button onclick={() => toggleBool(tag)} style="width: auto; padding: 0 8px; font-size: 10px;">
+                {tag.mvwTarget > 0 ? 'ON' : 'OFF'}
+              </button>
+            {/if}
+            <button onclick={() => deleteTag(tag)} style="color: var(--pink); background: none; font-size: 14px; margin-left: 4px;" title="Delete Tag">×</button>
+          </div>
         </div>
-      </div>
-      <!-- Meditate -->
-      <div class="config-row">
-        <span>Meditate</span>
-        <div class="config-controls">
-          <button onclick={() => adjustTarget('meditate', -1)}>−</button>
-          <span>{config.meditate.target} / {config.meditate.outOf}</span>
-          <button onclick={() => adjustTarget('meditate', 1)}>+</button>
-        </div>
-      </div>
-      <!-- Exercise -->
-      <div class="config-row">
-        <span>Exercise</span>
-        <div class="config-controls">
-          <button onclick={() => adjustTarget('exer', -1)}>−</button>
-          <span>{config.exer.target} / {config.exer.outOf}</span>
-          <button onclick={() => adjustTarget('exer', 1)}>+</button>
-        </div>
-      </div>
-      
-      <!-- Booleans -->
-      <div class="config-row">
-        <span>Programming</span>
-        <div class="config-controls">
-          <button onclick={() => toggleBool('prog')} style="width: auto; padding: 0 8px;">
-            {config.prog.target > 0 ? 'ON' : 'OFF'}
-          </button>
-        </div>
-      </div>
-      <div class="config-row">
-        <span>Drawing</span>
-        <div class="config-controls">
-          <button onclick={() => toggleBool('draw')} style="width: auto; padding: 0 8px;">
-            {config.draw.target > 0 ? 'ON' : 'OFF'}
-          </button>
-        </div>
-      </div>
-      <div class="config-row">
-        <span>Keyboard</span>
-        <div class="config-controls">
-          <button onclick={() => toggleBool('keys')} style="width: auto; padding: 0 8px;">
-            {config.keys.target > 0 ? 'ON' : 'OFF'}
-          </button>
-        </div>
-      </div>
+      {/each}
+      <button onclick={addTag} style="grid-column: 1 / -1; padding: 6px; background: var(--surface-hover); border: 1px dashed var(--border); color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 500;">+ Add New Goal</button>
     </div>
   {/if}
 
   <div class="mvw-chips">
     {#each chips as item}
-      <span class="chip {item.done ? 'done' : item.partial ? 'partial' : ''}">
+      <span 
+        class="chip {item.done ? 'done' : item.partial ? 'partial' : ''}"
+        style={item.done ? `border-color: ${item.color}; background: ${item.color}22; color: ${item.color};` : item.partial ? `border-color: ${item.color}; color: ${item.color};` : ''}
+      >
         {item.done ? '✓ ' : ''}{item.label}
       </span>
     {/each}

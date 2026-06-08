@@ -1,37 +1,40 @@
 import { describe, it, expect, vi } from 'vitest';
 import { getMVW } from '../src/lib/mvw.js';
 
-// Mock storage to provide custom config and schedule
 vi.mock('../src/lib/storage.js', () => {
   return {
     getSchedule: () => [
       { key: 'mon', jsDay: 1, sessions: [
-        { id: 's1', type: 'anchor', label: 'Morning stretch' },
-        { id: 's2', type: 'exer', label: 'Gym' },
-        { id: 's3', type: 'prog', label: 'Coding' }
+        { id: 's1', tagId: 'stretch' },
+        { id: 's2', tagId: 'exer' },
+        { id: 's3', tagId: 'prog' }
       ]}
     ],
-    getTasks: () => [],
-    getMVWConfig: () => ({
-      stretch:  { target: 2, outOf: 7 }, // Custom: 2 instead of 5
-      meditate: { target: 0, outOf: 7 }, // Hidden
-      prog:     { target: 1 },
-      draw:     { target: 0 },
-      keys:     { target: 0 },
-      exer:     { target: 1, outOf: 3 }  // Custom: 1 instead of 2
-    })
+    getTasks: () => [
+      { id: 't1', tagId: 'reading' } // Floating task
+    ],
+    getTagsSync: () => [
+      { id: 'stretch', label: 'Stretch', mvwTarget: 2, mvwOutOf: 7 }, // Custom: 2 instead of 5
+      { id: 'meditate', label: 'Meditate', mvwTarget: 0, mvwOutOf: 7 }, // Hidden
+      { id: 'prog', label: 'Programming', mvwTarget: 1 },
+      { id: 'draw', label: 'Drawing', mvwTarget: 0 },
+      { id: 'exer', label: 'Exercise', mvwTarget: 1, mvwOutOf: 3 }, // Custom: 1 instead of 2
+      { id: 'reading', label: 'Reading', mvwTarget: 1 }
+    ]
   };
 });
 
-describe('Dynamic MVW Logic', () => {
-  it('respects custom targets', () => {
+describe('Unified Tags MVW Logic', () => {
+  it('respects custom targets across scheduled blocks and floating tasks', () => {
     const state = {
       checked: {
         'mon-s1': true, // 1 stretch
         'mon-s2': true, // 1 exercise
         'mon-s3': true  // 1 prog
       },
-      tasks: {}
+      tasks: {
+        't1': true      // 1 reading task done
+      }
     };
 
     const chips = getMVW(state);
@@ -46,12 +49,14 @@ describe('Dynamic MVW Logic', () => {
     expect(exerChip.done).toBe(true);
     expect(exerChip.partial).toBe(false);
 
-    // meditate, draw, keys should be hidden because target is 0
+    // meditate, draw should be hidden because target is 0
     expect(chips.find(c => c.id === 'meditate')).toBeUndefined();
     expect(chips.find(c => c.id === 'draw')).toBeUndefined();
-    expect(chips.find(c => c.id === 'keys')).toBeUndefined();
     
     // prog should be done
     expect(chips.find(c => c.id === 'prog').done).toBe(true);
+
+    // reading task should be done
+    expect(chips.find(c => c.id === 'reading').done).toBe(true);
   });
 });
