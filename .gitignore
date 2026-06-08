@@ -1,0 +1,17 @@
+# Logs (generated at runtime — not tracked)
+logs/
+
+# Old files
+old/
+
+# Private docs
+docs/Handoff.md
+prompt.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp

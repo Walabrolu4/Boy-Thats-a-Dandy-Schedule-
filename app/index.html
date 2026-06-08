@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boy, That's a Dandy Schedule!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+  <div class="app">
+
+    <div class="header">
+      <div class="header-left">
+        <h1>🌸 Boy, That's a Dandy Schedule! 🌸</h1>
+        <div class="week-label" id="weekLabel"></div>
+      </div>
+      <div class="header-btns">
+        <button class="btn" id="editBtn" onclick="toggleEditMode()">Edit schedule</button>
+        <button class="btn" onclick="resetWeek()">Reset week</button>
+        <button class="btn btn-dev" onclick="devReset()" title="Clears all app data from localStorage">dev: reset all</button>
+      </div>
+    </div>
+
+    <div class="mvw-section">
+      <div class="mvw-label">Minimum viable week</div>
+      <div class="mvw-chips" id="mvwChips"></div>
+    </div>
+
+    <div class="section-heading">Scheduled</div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div class="legend" id="legend"></div>
+    <div style="height: 1.5rem;"></div>
+
+    <div class="section-heading">Unscheduled</div>
+    <div id="tasksSection"></div>
+
+    <div style="height: 1rem;"></div>
+
+    <div class="review-card">
+      <div class="review-toggle" onclick="toggleReview()">
+        <span>Weekly review</span>
+        <span class="toggle-hint" id="toggleHint">show ↓</span>
+      </div>
+      <div class="review-body" id="reviewBody">
+        <div class="q-label">Which sessions didn't happen, and why?</div>
+        <textarea id="q1" placeholder="…" oninput="autoSaveReview()"></textarea>
+
+        <div class="q-label">Where did I get stuck?</div>
+        <textarea id="q2" placeholder="…" oninput="autoSaveReview()"></textarea>
+
+        <div class="q-label">One thing I want to protect time for next week</div>
+        <textarea id="q3" placeholder="…" oninput="autoSaveReview()"></textarea>
+
+        <div class="review-footer">
+          <button class="save-to-file-btn" id="saveReviewBtn" onclick="saveWeeklyReview()">Save to file</button>
+          <span class="saved-flash" id="exportFlash"></span>
+          <span class="saved-flash autosave-flash" id="savedFlash">Auto-saved ✓</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer class="app-footer">
+    <span class="footer-rule"></span>
+    <span class="footer-content">
+      a DMS app
+      <img src="dms_logo_temp.png" alt="DMS" class="footer-logo">
+      2026
+    </span>
+    <span class="footer-rule"></span>
+  </footer>
+
+  <!-- Load order matters: each file depends on the ones before it -->
+  <script src="js/data.js"></script>      <!-- constants -->
+  <script src="js/storage.js"></script>   <!-- localStorage helpers -->
+  <script src="js/state.js"></script>     <!-- mutable UI state -->
+  <script src="js/mvw.js"></script>       <!-- minimum viable week logic -->
+  <script src="js/drag.js"></script>      <!-- drag-and-drop handlers -->
+  <script src="js/edit.js"></script>      <!-- add / remove session handlers -->
+  <script src="js/render.js"></script>    <!-- DOM render function -->
+  <script src="js/app.js"></script>       <!-- top-level handlers + bootstrap -->
+  <script src="js/export.js"></script>    <!-- weekly review file export -->
+</body>
+</html>
