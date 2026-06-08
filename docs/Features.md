@@ -99,7 +99,7 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 
 - ✅ Modular JS (current state)
 - ✅ Local Node.js server (`server.js`) for file writes
-- 🔲 Migrate frontend to Svelte + Vite build step `→ Sprint 0.2` (New Sprint before Supabase)
+- ✅ Migrate frontend to Svelte + Vite build step `→ Sprint 0.2`
 - 🔲 Unit test suite (Vitest) `→ Sprint 0.5`
 - 🔲 Migrate from local server to Supabase backend `→ Sprint 5`
 - 🔲 PWA manifest + service worker (installable, offline support) `→ Sprint 6`

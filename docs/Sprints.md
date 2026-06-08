@@ -119,6 +119,41 @@ The following decisions must be made before Sprint 0.5 begins.
 
 ---
 
+## Sprint 0.2 — Svelte + Vite Migration
+**Goal:** Replace the vanilla JS `<script>` tag architecture with Vite + Svelte. The app looks and works identically — this sprint is purely structural.
+**Features delivered:** `Migrate frontend to Svelte + Vite build step` (Architecture section)
+
+### Project Setup
+- [x] Create `package.json` with Vite, Svelte, and Vitest as dev dependencies
+- [x] Create `vite.config.js`
+- [x] Create root `index.html` (Vite entry point, replaces `app/index.html`)
+- [x] Run `npm install` — packages installed cleanly
+- [x] Add `node_modules/` and `dist/` to `.gitignore`
+
+### Source Files
+- [x] Create `src/main.js` — Svelte entry point
+- [x] Create `src/app.css` — CSS copied verbatim from `app/css/main.css`
+- [x] Create `src/lib/data.js` — constants with ES module exports
+- [x] Create `src/lib/storage.js` — localStorage helpers with ES module exports
+- [x] Create `src/lib/mvw.js` — MVW calculation logic as ES module
+- [x] Create `src/lib/export.js` — weekly review export as ES module (callback-based for Svelte)
+- [x] Create `public/` folder and copy `dms_logo_temp.png` into it
+
+### Svelte Components
+- [x] Create `src/App.svelte` — root shell: header, buttons, layout
+- [x] Create `src/components/MvwChips.svelte` — MVW chip row
+- [x] Create `src/components/WeekGrid.svelte` — 7-day grid, sessions, drag-and-drop, add/edit forms
+- [x] Create `src/components/TasksSection.svelte` — unscheduled tasks with add/remove
+- [x] Create `src/components/ReviewCard.svelte` — collapsible weekly review panel
+
+### Verification
+- [x] `npm run build` — 118 modules, ✓ built in 966ms, no errors
+- [x] Old `app/` folder preserved — `node server.js` still works as fallback until Sprint 5
+- [x] Commit: `git commit -m "Sprint 0.2: Svelte + Vite migration"`
+- [x] Push to GitHub
+
+---
+
 ## Sprint 0.5 — Unit Tests
 **Goal:** A test suite covering all pure logic functions. Tests run before every commit. No npm required — uses Node's built-in `node:test` module.
 **Features delivered:** Testing & Quality section in `Features.md`

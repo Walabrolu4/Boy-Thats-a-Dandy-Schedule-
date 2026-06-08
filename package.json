@@ -1,0 +1,18 @@
+{
+  "name": "boy-thats-a-dandy-schedule",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.1.2",
+    "svelte": "^5.56.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
+  }
+}
