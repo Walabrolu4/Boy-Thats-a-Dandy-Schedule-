@@ -13,22 +13,22 @@ Status legend: ✅ Done · 🔲 Not started · 🔄 In progress · ⏸ Blocked
 **Features delivered:** none — this is infrastructure only.
 
 ### Git / Repo
-- [ ] Delete the broken partial `.git` folder (open project in File Explorer → delete `.git` manually, or run `rmdir /s /q .git` in terminal)
-- [ ] Run `git init` in the project root from VSCode terminal
-- [ ] Run `git branch -M main`
-- [ ] Run `git config user.email "kaushikpaddy@gmail.com"` and `git config user.name "Kaushik"`
-- [ ] Run `git remote add origin https://github.com/Walabrolu4/Boy-Thats-a-Dandy-Schedule-.git`
+- [x] Delete the broken partial `.git` folder (open project in File Explorer → delete `.git` manually, or run `rmdir /s /q .git` in terminal)
+- [x] Run `git init` in the project root from VSCode terminal
+- [x] Run `git branch -M main`
+- [x] Run `git config user.email "kaushikpaddy@gmail.com"` and `git config user.name "Kaushik"`
+- [x] Run `git remote add origin https://github.com/Walabrolu4/Boy-Thats-a-Dandy-Schedule-.git`
 - [x] Verify `.gitignore` excludes: `logs/`, `old/`, `docs/Handoff.md`, `node_modules/` — `.gitignore` created and verified
-- [ ] Stage all files: `git add -A`
-- [ ] First commit: `git commit -m "Initial commit: Boy, That's a Dandy Schedule!"`
-- [ ] Push: `git push -u origin main`
-- [ ] Verify files appear correctly on GitHub
+- [x] Stage all files: `git add -A`
+- [x] First commit: `git commit -m "Initial commit: Boy, That's a Dandy Schedule!"`
+- [x] Push: `git push -u origin main`
+- [x] Verify files appear correctly on GitHub
 
 ### VSCode Setup
 - [ ] Open the project folder in VSCode (`File → Open Folder`)
 - [ ] Install recommended extensions: Prettier (formatting), Live Server (preview without Node), GitLens (git history)
 - [x] Confirm `node server.js` runs and the app opens at `http://localhost:3131` — server confirmed working
-- [ ] Delete `git-setup.bat` — no longer needed once git is configured
+- [x] Delete `git-setup.bat` — no longer needed once git is configured
 
 ### Housekeeping
 - [x] Move any stray planning `.md` files from the project root into `docs/` or `old/` — root only contains `README.md`
