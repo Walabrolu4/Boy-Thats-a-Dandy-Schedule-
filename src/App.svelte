@@ -51,7 +51,7 @@
 
   <div class="header">
     <div class="header-left">
-      <h1>🌸 Boy, That's a Dandy Schedule! 🌸</h1>
+      <h1>🌸 Now that's a Dandy Routine! 🌸</h1>
       <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">

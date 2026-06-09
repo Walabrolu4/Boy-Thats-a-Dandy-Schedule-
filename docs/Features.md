@@ -108,7 +108,7 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 
 ## UI / Polish
 
-- ✅ "Boy, That's a Dandy Schedule!" branding with Pacifico font
+- ✅ "Now that's a Dandy Routine!" branding with Pacifico font
 - ✅ Dark theme
 - ✅ Scheduled / Unscheduled section headings
 - ✅ Session type legend

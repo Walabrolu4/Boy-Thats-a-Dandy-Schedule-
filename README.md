@@ -1,4 +1,4 @@
-# 🌸 Boy, That's a Dandy Schedule!
+# 🌸 Now that's a Dandy Routine!
 
 A personal weekly learning tracker and habits planner. Plan your sessions, track completions, hit your minimum viable week goals, and write reflections — all completely locally in your browser.
 

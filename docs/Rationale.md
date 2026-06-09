@@ -1,4 +1,4 @@
-# Rationale: Boy, That's a Dandy Schedule!
+# Rationale: Now that's a Dandy Routine!
 
 > Why this app exists, what research it's built on, and what problem it's actually solving.
 

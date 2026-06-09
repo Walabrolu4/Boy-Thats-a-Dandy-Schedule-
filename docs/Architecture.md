@@ -1,7 +1,7 @@
 # System Architecture (v1.0)
 
 ## Overview
-"Boy, That's a Dandy Schedule!" is a lightweight, purely client-side PWA built with Svelte 5.
+"Now that's a Dandy Routine!" is a lightweight, purely client-side PWA built with Svelte 5.
 After initial deliberation, the project shifted from a traditional client-server database model (Supabase) to a fully localized, offline-first approach using `localStorage` as the primary data engine.
 
 ## Core Philosophies
