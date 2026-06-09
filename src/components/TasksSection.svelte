@@ -52,15 +52,49 @@
     onStateChange(newState);
     onScheduleChange();
   }
+  let draggedTaskId = $state(null);
+
+  function handleDragStart(e, taskId) {
+    draggedTaskId = taskId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', taskId);
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function handleDrop(e, targetTaskId) {
+    e.preventDefault();
+    if (!draggedTaskId || draggedTaskId === targetTaskId) return;
+
+    const allTasks = getTasks();
+    const draggedIndex = allTasks.findIndex(t => t.id === draggedTaskId);
+    const targetIndex = allTasks.findIndex(t => t.id === targetTaskId);
+
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const taskList = [...allTasks];
+      const [draggedItem] = taskList.splice(draggedIndex, 1);
+      taskList.splice(targetIndex, 0, draggedItem);
+      saveTasks(taskList);
+      onScheduleChange(); // Trigger reactivity
+    }
+    draggedTaskId = null;
+  }
 </script>
 
 <div class="section-heading">Unscheduled</div>
 <div id="tasksSection">
-  {#each tasks as task}
+  {#each tasks as task (task.id)}
     {@const done = !!(weekState.tasks?.[task.id])}
     {@const tag = tags.find(t => t.id === task.tagId)}
     <!-- svelte-ignore a11y_no_static_element_interactions --><!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="task-row {editMode?'task-row-edit':''}"
+    <div class="task-row {editMode?'task-row-edit':''} {draggedTaskId === task.id ? 'dragging' : ''}"
+      draggable={editMode}
+      ondragstart={e => { if(editMode) handleDragStart(e, task.id); }}
+      ondragover={e => { if(editMode) handleDragOver(e); }}
+      ondrop={e => { if(editMode) handleDrop(e, task.id); }}
       onclick={() => { if (!editMode) toggleTask(task.id); }}>
       <div class="r-check {done?'done':''}" style="{tag && done ? `background:${tag.color}; border-color:${tag.color};` : tag ? `border-color:${tag.color}80` : ''}">{done ? '✓' : ''}</div>
       <span class="reading-text" style="{tag ? `color:${tag.color}` : ''}">

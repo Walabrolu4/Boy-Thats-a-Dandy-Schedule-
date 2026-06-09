@@ -1,5 +1,6 @@
 <script>
   import { saveWeeklyReview } from '../lib/export.js';
+  import PastReviews from './PastReviews.svelte';
 
   let { weekState, onStateChange } = $props();
 
@@ -75,5 +76,7 @@
       <span class="saved-flash {exportFlashVisible ? 'show' : ''}">{exportFlashMsg}</span>
       <span class="saved-flash autosave-flash {savedFlash ? 'show' : ''}">Auto-saved ✓</span>
     </div>
+    
+    <PastReviews />
   </div>
 </div>

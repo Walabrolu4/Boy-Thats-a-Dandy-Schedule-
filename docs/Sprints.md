@@ -575,7 +575,27 @@ The following decisions must be made before Sprint 0.5 begins.
 
 ---
 
-## Sprint 8 — Final Polish & Launch
+## Sprint 8 — Stats & Analytics
+**Goal:** Create a visual dashboard to track adherence and habit trends over time.
+**Features delivered:** A dedicated "Stats" page with charts for goal completion rates and session adherence.
+
+### Data Aggregation
+- [ ] Create `lib/stats.js` to process historical `ls-week-*` data from `localStorage`.
+- [ ] Calculate overall completion percentages for weekly goals (Minimum Viable Week).
+- [ ] Calculate adherence percentages for scheduled sessions over time.
+
+### Visualizations
+- [ ] Add `chart.js` or a similar charting library.
+- [ ] Create `src/components/StatsDashboard.svelte`.
+- [ ] Build a line chart showing goal completion trends across past weeks.
+- [ ] Build a bar chart or radar chart showing which specific tags/habits are most frequently missed or completed.
+
+### Navigation
+- [ ] Add a "📊 Stats" button to the main header or Settings modal to open the dashboard.
+
+---
+
+## Sprint 9 — Final Polish & Launch
 **Goal:** v1.0. Bug-free, fully documented, shareable.
 **Features delivered:** All remaining accessibility, performance, and doc items.
 

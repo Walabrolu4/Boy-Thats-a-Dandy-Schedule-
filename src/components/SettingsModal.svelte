@@ -1,9 +1,11 @@
 <script>
   import ThemePicker from './ThemePicker.svelte';
+  import SeasonalWizard from './SeasonalWizard.svelte';
 
   let { showSettings = $bindable(false) } = $props();
 
   let fileInput = $state();
+  let showSeasonalWizard = $state(false);
 
   function closeSettings() {
     showSettings = false;
@@ -95,9 +97,19 @@
         </button>
         <input type="file" accept=".json" bind:this={fileInput} onchange={handleImport} style="display: none;" />
       </div>
+
+      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Schedule Advanced</h4>
+      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
+        Automatically pack your existing scheduled sessions into specific available days when the season changes.
+      </p>
+      <button class="settings-action-btn secondary" onclick={() => showSeasonalWizard = true}>
+        🍂 Seasonal Re-mapping
+      </button>
     </div>
   </div>
 {/if}
+
+<SeasonalWizard bind:showWizard={showSeasonalWizard} onComplete={() => { showSeasonalWizard = false; window.location.reload(); }} />
 
 <style>
   .settings-action-btn {
