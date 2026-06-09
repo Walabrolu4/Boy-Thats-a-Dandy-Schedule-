@@ -1,53 +1,54 @@
 <script>
+  import { onMount } from 'svelte';
   import MvwChips from './components/MvwChips.svelte';
   import WeekGrid from './components/WeekGrid.svelte';
   import TasksSection from './components/TasksSection.svelte';
   import ReviewCard from './components/ReviewCard.svelte';
-  import ThemePicker from './components/ThemePicker.svelte';
+  import SettingsModal from './components/SettingsModal.svelte';
+  import { getWeekKey, getState, saveState, getWeekRange, getTheme } from './lib/storage.js';
+  import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from './lib/data.js';
 
-  import { getState, saveState, getWeekRange } from './lib/storage.js';
-
-  // weekState drives all checkmark/task/review rendering
+  let weekRange = $state(getWeekRange());
   let weekState = $state(getState());
-  // scheduleVersion increments whenever the schedule or tasks list changes,
-  // telling WeekGrid / TasksSection to re-read from localStorage
-  let scheduleVersion = $state(0);
   let editMode = $state(false);
+  let scheduleVersion = $state(0);
+  let showManageGoals = $state(false);
+  let showSettings = $state(false);
 
-  const weekRange = getWeekRange();
+  // Apply the theme on initial load
+  let initialTheme = getTheme();
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-theme', initialTheme);
+  }
 
   function handleStateChange(newState) {
     weekState = { ...newState };
     saveState(weekState);
   }
-
   function handleScheduleChange() {
     scheduleVersion += 1;
   }
-
+  function devReset() {
+    if (!confirm('Nuke all localStorage data? This will reset the app entirely.')) return;
+    localStorage.clear();
+    localStorage.setItem('ls-tags', JSON.stringify(DEFAULT_TAGS));
+    localStorage.setItem('ls-schedule', JSON.stringify(DEFAULT_DAYS));
+    localStorage.setItem('ls-tasks', JSON.stringify(DEFAULT_TASKS));
+    window.location.reload();
+  }
+  function resetWeek() {
+    if (!confirm(`Clear all checkmarks and review for ${weekRange}?`)) return;
+    localStorage.removeItem(getWeekKey());
+    weekState = getState();
+  }
   function toggleEditMode() {
     editMode = !editMode;
   }
-
-  function resetWeek() {
-    if (!confirm('Reset all checkmarks for this week?')) return;
-    weekState = { checked: {}, tasks: {}, review: { q1: '', q2: '', q3: '' } };
-    saveState(weekState);
-  }
-
-  function devReset() {
-    if (!confirm('Delete ALL app data (schedule + all weeks)? This cannot be undone.')) return;
-    Object.keys(localStorage)
-      .filter(k => k === 'ls-schedule' || k === 'ls-tasks' || k === 'ls-tags' || k.startsWith('ls-week-'))
-      .forEach(k => localStorage.removeItem(k));
-    weekState = getState();
-    editMode = false;
-    scheduleVersion += 1;
-  }
-  let showManageGoals = $state(false);
-
   function toggleManageGoals() {
     showManageGoals = !showManageGoals;
+  }
+  function toggleSettings() {
+    showSettings = !showSettings;
   }
 </script>
 
@@ -59,7 +60,7 @@
       <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">
-      <ThemePicker />
+      <button class="btn" onclick={toggleSettings} title="Settings & Data">⚙️</button>
       <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals}>
         {showManageGoals ? 'Close goals' : 'Manage goals'}
       </button>
@@ -72,6 +73,8 @@
       </button>
     </div>
   </div>
+
+  <SettingsModal bind:showSettings />
 
   <MvwChips {weekState} {scheduleVersion} onScheduleChange={handleScheduleChange} bind:showConfig={showManageGoals} />
 
