@@ -5,8 +5,10 @@
   import TasksSection from './components/TasksSection.svelte';
   import ReviewCard from './components/ReviewCard.svelte';
   import SettingsModal from './components/SettingsModal.svelte';
+  import StatsDashboard from './components/StatsDashboard.svelte';
   import { getWeekKey, getState, saveState, getWeekRange, getTheme } from './lib/storage.js';
   import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from './lib/data.js';
+  import { generateDummyStats } from './lib/stats.js';
 
   let weekRange = $state(getWeekRange());
   let weekState = $state(getState());
@@ -14,6 +16,7 @@
   let scheduleVersion = $state(0);
   let showManageGoals = $state(false);
   let showSettings = $state(false);
+  let showStats = $state(false);
 
   // Apply the theme on initial load
   let initialTheme = getTheme();
@@ -27,26 +30,6 @@
   }
   function handleScheduleChange() {
     scheduleVersion += 1;
-  }
-  function devReset() {
-    if (!confirm('Nuke all localStorage data? This will reset the app entirely.')) return;
-    localStorage.clear();
-    localStorage.setItem('ls-tags', JSON.stringify(DEFAULT_TAGS));
-    localStorage.setItem('ls-schedule', JSON.stringify(DEFAULT_DAYS));
-    localStorage.setItem('ls-tasks', JSON.stringify(DEFAULT_TASKS));
-    window.location.reload();
-  }
-  function devPopulate() {
-    if (!confirm('Inject 3 weeks of synthetic past reviews?')) return;
-    const dummyReviews = [
-      { key: 'ls-week-2026-05-15', data: { review: { q1: "Missed 2 workouts because I was travelling for work.", q2: "Getting back into the routine after the trip was tough.", q3: "My morning block, no matter what." } } },
-      { key: 'ls-week-2026-05-22', data: { review: { q1: "Skipped painting because I didn't have my supplies set up.", q2: "Procrastination on the big refactor project.", q3: "Sunday evening planning session." } } },
-      { key: 'ls-week-2026-05-29', data: { review: { q1: "None! Hit every session this week.", q2: "Felt a bit burnt out on Thursday.", q3: "More breaks between deep work sessions." } } }
-    ];
-    for (const item of dummyReviews) {
-      localStorage.setItem(item.key, JSON.stringify(item.data));
-    }
-    window.location.reload();
   }
   function resetWeek() {
     if (!confirm(`Clear all checkmarks and review for ${weekRange}?`)) return;
@@ -72,7 +55,7 @@
       <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">
-      <button class="btn" onclick={toggleSettings} title="Settings & Data">⚙️</button>
+      <button class="btn" onclick={() => showStats = true} title="View analytics">📊 Stats</button>
       <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals}>
         {showManageGoals ? 'Close goals' : 'Manage goals'}
       </button>
@@ -80,44 +63,25 @@
         Edit schedule
       </button>
       <button class="btn" onclick={resetWeek}>Reset week</button>
-      <button class="btn btn-dev" onclick={devPopulate} title="Inject past reviews">
-        dev: add past
-      </button>
-      <button class="btn btn-dev" onclick={devReset} title="Clears all app data from localStorage">
-        dev: reset all
-      </button>
+      <button class="btn" onclick={toggleSettings} title="Settings & Data">⚙️</button>
     </div>
   </div>
 
-  <SettingsModal bind:showSettings />
+  <div class="content-container {showManageGoals ? 'showing-goals' : ''}">
+    {#if showManageGoals}
+      <MvwChips {scheduleVersion} />
+    {/if}
 
-  <MvwChips {weekState} {scheduleVersion} onScheduleChange={handleScheduleChange} bind:showConfig={showManageGoals} />
+    <WeekGrid bind:weekState={weekState} {editMode} {scheduleVersion} onStateChange={handleStateChange} onScheduleChange={handleScheduleChange} />
+    
+    <TasksSection bind:weekState={weekState} {editMode} {scheduleVersion} onStateChange={handleStateChange} onScheduleChange={handleScheduleChange} />
+  </div>
 
-  <div style="height: 1.5rem;"></div>
-
-  <WeekGrid
-    {weekState}
-    {editMode}
-    {scheduleVersion}
-    onStateChange={handleStateChange}
-    onScheduleChange={handleScheduleChange}
-  />
-
-  <div style="height: 1.5rem;"></div>
-
-  <TasksSection
-    {weekState}
-    {editMode}
-    {scheduleVersion}
-    onStateChange={handleStateChange}
-    onScheduleChange={handleScheduleChange}
-  />
-
-  <div style="height: 1rem;"></div>
-
-  <ReviewCard {weekState} onStateChange={handleStateChange} />
-
+  <ReviewCard bind:weekState={weekState} onStateChange={handleStateChange} />
 </div>
+
+<SettingsModal bind:showSettings={showSettings} />
+<StatsDashboard bind:showStats={showStats} />
 
 <footer class="app-footer">
   <span class="footer-rule"></span>

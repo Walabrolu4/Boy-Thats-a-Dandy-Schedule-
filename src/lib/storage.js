@@ -79,6 +79,11 @@ export function getState() {
 }
 
 export function saveState(s) {
+  // Attach current schedule snapshot so historical stats are perfectly accurate
+  // even if the user completely remaps their schedule in the future.
+  if (!s.scheduleSnapshot) {
+    s.scheduleSnapshot = getSchedule();
+  }
   localStorage.setItem(getWeekKey(), JSON.stringify(s));
 }
 

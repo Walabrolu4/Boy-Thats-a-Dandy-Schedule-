@@ -67,6 +67,35 @@
     };
     reader.readAsText(file);
   }
+  import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from '../lib/data.js';
+  import { generateDummyStats } from '../lib/stats.js';
+
+  function devReset() {
+    if (!confirm('Nuke all localStorage data? This will reset the app entirely.')) return;
+    localStorage.clear();
+    localStorage.setItem('ls-tags', JSON.stringify(DEFAULT_TAGS));
+    localStorage.setItem('ls-schedule', JSON.stringify(DEFAULT_DAYS));
+    localStorage.setItem('ls-tasks', JSON.stringify(DEFAULT_TASKS));
+    window.location.reload();
+  }
+  
+  function devPopulate() {
+    if (!confirm('Inject 3 weeks of synthetic past reviews?')) return;
+    const dummyReviews = [
+      { key: 'ls-week-2026-05-15', data: { review: { q1: "Missed 2 workouts because I was travelling for work.", q2: "Getting back into the routine after the trip was tough.", q3: "My morning block, no matter what." } } },
+      { key: 'ls-week-2026-05-22', data: { review: { q1: "Skipped painting because I didn't have my supplies set up.", q2: "Procrastination on the big refactor project.", q3: "Sunday evening planning session." } } },
+      { key: 'ls-week-2026-05-29', data: { review: { q1: "None! Hit every session this week.", q2: "Felt a bit burnt out on Thursday.", q3: "More breaks between deep work sessions." } } }
+    ];
+    for (const item of dummyReviews) {
+      localStorage.setItem(item.key, JSON.stringify(item.data));
+    }
+    window.location.reload();
+  }
+  
+  function devMockStats() {
+    if (!confirm('Inject mock stats for charts?')) return;
+    generateDummyStats();
+  }
 </script>
 
 {#if showSettings}
@@ -105,6 +134,19 @@
       <button class="settings-action-btn secondary" onclick={() => showSeasonalWizard = true}>
         🍂 Seasonal Re-mapping
       </button>
+
+      <h4 style="margin: 32px 0 8px 0; font-size: 15px; color: var(--text);">Developer Tools</h4>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px;" onclick={devPopulate}>
+          Inject Mock Past Reviews
+        </button>
+        <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px;" onclick={devMockStats}>
+          Inject Mock Stats
+        </button>
+        <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px; border-color: #ff5555; color: #ff5555;" onclick={devReset}>
+          Factory Reset App Data
+        </button>
+      </div>
     </div>
   </div>
 {/if}
