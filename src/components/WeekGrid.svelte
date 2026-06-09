@@ -249,7 +249,7 @@
           {@const done = !!weekState.checked[key]}
           <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
           <div class="session {session.micro?'micro':''} {done?'done':''} {!editMode?'checkable':''} {isReorder?'reorder-mode':''}"
-            style="{tag ? `color: ${tag.color}; border-color: ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : 'transparent'}` : ''}"
+            style="{tag ? `color: ${tag.color}; border: 1px solid ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : tag.color+'11'}` : 'border: 1px solid var(--border);'}"
             draggable="true" data-session={key}
             onclick={() => toggle(day.key, session.id)}
             ontouchstart={e => onTouchStart(e, day.key, session.id)}
@@ -316,11 +316,4 @@
       {/if}
     </div>
   {/each}
-</div>
-
-<div class="legend">
-  {#each tags as t}
-    <span class="legend-item" style="color: {t.color}">{t.label}</span>
-  {/each}
-  <span style="font-size:10px;color:#bbb;padding:2px 0;align-self:center;">faded = micro session</span>
 </div>

@@ -83,7 +83,7 @@
           <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
           <span class="type-opt {pendingTagId===''?'selected':''}"
             style="border-color: var(--border); color: var(--text-muted); background: {pendingTagId==='' ? 'var(--surface-hover)' : 'transparent'}"
-            onclick={() => { pendingTagId = ''; }}>Untagged</span>
+            onclick={() => { pendingTagId = ''; }}>No Goal</span>
           {#each tags as t}
             <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
             <span class="type-opt {pendingTagId===t.id?'selected':''}"

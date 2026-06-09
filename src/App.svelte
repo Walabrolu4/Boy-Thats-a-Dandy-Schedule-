@@ -44,6 +44,11 @@
     editMode = false;
     scheduleVersion += 1;
   }
+  let showManageGoals = $state(false);
+
+  function toggleManageGoals() {
+    showManageGoals = !showManageGoals;
+  }
 </script>
 
 <div class="app">
@@ -55,6 +60,9 @@
     </div>
     <div class="header-btns">
       <ThemePicker />
+      <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals}>
+        {showManageGoals ? 'Close goals' : 'Manage goals'}
+      </button>
       <button class="btn {editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode}>
         Edit schedule
       </button>
@@ -65,7 +73,9 @@
     </div>
   </div>
 
-  <MvwChips {weekState} {scheduleVersion} />
+  <MvwChips {weekState} {scheduleVersion} onScheduleChange={handleScheduleChange} bind:showConfig={showManageGoals} />
+
+  <div style="height: 1.5rem;"></div>
 
   <WeekGrid
     {weekState}
@@ -95,8 +105,7 @@
   <span class="footer-rule"></span>
   <span class="footer-content">
     a DMS app
-    <img src="/dms_logo_temp.png" alt="DMS" class="footer-logo">
-    2026
+    <img src="/dms_logo_temp.png" alt="DMS" class="footer-logo">, 2026
   </span>
   <span class="footer-rule"></span>
 </footer>
