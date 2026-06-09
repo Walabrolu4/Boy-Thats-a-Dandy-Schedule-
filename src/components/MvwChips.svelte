@@ -129,15 +129,15 @@
               <button onclick={() => adjustTarget(tag, -1)}>−</button>
               <span>{tag.mvwTarget}</span>
               <button onclick={() => adjustTarget(tag, 1)}>+</button>
-              <button onclick={() => toggleBool(tag)} style="width: auto; padding: 0 8px; font-size: 10px;">
+              <button onclick={() => toggleBool(tag)} style="width: auto; padding: 0 8px; font-size: 12px;">
                 {tag.mvwTarget > 0 ? 'ON' : 'OFF'}
               </button>
             {/if}
-            <button onclick={() => promptDeleteTag(tag)} style="color: var(--pink); background: none; font-size: 14px; margin-left: 4px;" title="Delete Goal">×</button>
+            <button onclick={() => promptDeleteTag(tag)} style="color: var(--pink); background: none; font-size: 16px; margin-left: 4px;" title="Delete Goal">×</button>
           </div>
         </div>
       {/each}
-      <button onclick={addTag} style="grid-column: 1 / -1; padding: 6px; background: var(--surface-hover); border: 1px dashed var(--border); color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 500;">+ Add Goal</button>
+      <button onclick={addTag} style="grid-column: 1 / -1; padding: 6px; background: var(--surface-hover); border: 1px dashed var(--border); color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 14px; font-weight: 500;">+ Add Goal</button>
     </div>
   {/if}
 
@@ -158,12 +158,12 @@
   <div class="modal-overlay" onclick={cancelDeleteTag}>
     <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-content" onclick={e => e.stopPropagation()}>
-      <h3 style="margin: 0 0 10px 0; font-size: 16px; color: var(--text);">Delete {tagToDelete.label}?</h3>
-      <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.4;">
+      <h3 style="margin: 0 0 10px 0; font-size: 18px; color: var(--text);">Delete {tagToDelete.label}?</h3>
+      <p style="font-size: 15px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.4;">
         Removing this goal will affect tasks and scheduled sessions currently using it.
       </p>
       
-      <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; margin-bottom: 24px; cursor: pointer; color: var(--text);">
+      <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 15px; margin-bottom: 24px; cursor: pointer; color: var(--text);">
         <input type="checkbox" bind:checked={deleteAllTasks} style="margin-top: 2px;">
         <span>Delete all tasks and scheduled sessions associated with this goal</span>
       </label>

@@ -65,7 +65,7 @@
   }
   .btn-icon {
     padding: 6px 9px;
-    font-size: 14px;
+    font-size: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -84,7 +84,7 @@
   }
   .dropdown-item {
     padding: 6px 12px;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text-muted);
     border-radius: 4px;
