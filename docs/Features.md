@@ -20,9 +20,11 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 
 ## Testing & Quality
 
-- 🔲 Unit test suite for pure logic functions using Vitest `→ Sprint 0.5`
-- 🔲 Test runner script (`npm run test`) `→ Sprint 0.5`
-- 🔲 Tests run and pass before every commit `→ Sprint 0.5`
+- ✅ Unit test suite for pure logic functions using Vitest `→ Sprint 0.5`
+- ✅ Test runner script (`npm run test`) `→ Sprint 0.5`
+- ✅ Tests run and pass before every commit `→ Sprint 0.5`
+- ✅ Manual end-to-end testing across browsers `→ Sprint 9`
+- ✅ Lighthouse audits (Performance, Accessibility, PWA) `→ Sprint 9`
 
 ---
 
@@ -34,6 +36,9 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Default order: Stretch first, Meditate last per day
 - ✅ Week date range in header updates automatically based on real date
 - ✅ Current day highlighted in grid
+- ✅ Custom session types / tags — user-defined beyond the 5 built-in types `→ Sprint 4`
+- ✅ Edit and rename existing session types / tags (e.g. rename "prog" to "code") `→ Sprint 4`
+- ✅ Colour picker per type / tag `→ Sprint 4`
 
 ---
 
@@ -44,9 +49,6 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Remove sessions
 - ✅ Micro session toggle — faded appearance, does not count toward MVW
 - ✅ Edit mode toggle with visual indicator
-- 🔲 Custom session types / tags — user-defined beyond the 5 built-in types `→ Sprint 4`
-- 🔲 Edit and rename existing session types / tags (e.g. rename "prog" to "code") `→ Sprint 4`
-- 🔲 Colour picker per type / tag `→ Sprint 4`
 
 ---
 
@@ -56,8 +58,8 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Partial completion state (e.g. Exercise 1/3 shown as partial chip)
 - ✅ Type-based counting — custom/renamed sessions count by type, not hardcoded ID
 - ✅ Non-scheduled tasks appear as MVW chips automatically
-- 🔲 Custom MVW targets — user sets their own thresholds `→ Sprint 3`
-- 🔲 Per-session MVW opt-out — mark a specific session as not counting toward any MVW target `→ Sprint 3`
+- ✅ Custom MVW targets — user sets their own thresholds `→ Sprint 3`
+- ✅ Per-session MVW opt-out — mark a specific session as not counting toward any MVW target `→ Sprint 3`
 
 ---
 
@@ -66,23 +68,24 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Dynamic task list (add / remove tasks)
 - ✅ Tasks tracked as done/not-done per week
 - ✅ Tasks appear as MVW chips
-- 🔲 Task notes / description field `→ Sprint 7`
-- 🔲 Task reordering `→ Sprint 7`
+- ✅ Task notes / description field `→ Sprint 7`
+- ✅ Task reordering `→ Sprint 7`
 
 ---
 
-## Persistence
+## Persistence & Offline
 
 - ✅ Schedule structure saved to localStorage (persists across sessions)
 - ✅ Per-week state (checkmarks, tasks, review) saved to localStorage
 - ✅ Week key resets automatically each Friday
 - ✅ Auto-save review text to localStorage (debounced, no manual step)
-- 🔲 Cloud sync via Supabase — same data across devices `→ Sprint 5`
-- 🔲 Offline-first with sync-on-reconnect `→ Sprint 5`
+- ✅ Local-first architecture (no backend required) `→ Sprint 5`
+- ✅ Data Export & Import (JSON backup) `→ Sprint 5`
+- ✅ Seasonal Remapping (shift scheduled tasks) `→ Sprint 7`
 
 ---
 
-## Weekly Review
+## Weekly Review & Analytics
 
 - ✅ Collapsible review panel
 - ✅ Three reflection questions (why sessions missed, blockers, what to protect)
@@ -90,20 +93,16 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Save to `logs/weekly-reviews.md` via local Node server
 - ✅ Upsert logic — re-saving the same week updates the entry rather than duplicating it
 - ✅ Review export includes: sessions completed, unscheduled tasks, MVW status, reflection answers
-- 🔲 View past weeks' reviews in-app `→ Sprint 7`
-- 🔲 Review export to Supabase instead of local file (cross-device) `→ Sprint 5`
+- ✅ View past weeks' reviews in-app `→ Sprint 7`
+- ✅ Stats Dashboard with Chart.js line and bar charts `→ Sprint 8`
 
 ---
 
 ## Architecture / Developer
 
-- ✅ Modular JS (current state)
-- ✅ Local Node.js server (`server.js`) for file writes
-- ✅ Migrate frontend to Svelte + Vite build step `→ Sprint 0.2`
-- 🔲 Unit test suite (Vitest) `→ Sprint 0.5`
-- 🔲 Migrate from local server to Supabase backend `→ Sprint 5`
-- 🔲 PWA manifest + service worker (installable, offline support) `→ Sprint 6`
-- 🔲 Deploy to Cloudflare Pages `→ Sprint 6`
+- ✅ Svelte 5 component architecture
+- ✅ PWA installation & service worker offline cache
+- ✅ Single-file CSS theme architecture + Vite build step `→ Sprint 0.2`
 
 ---
 

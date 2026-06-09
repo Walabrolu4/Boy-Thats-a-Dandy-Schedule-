@@ -580,18 +580,18 @@ The following decisions must be made before Sprint 0.5 begins.
 **Features delivered:** A dedicated "Stats" page with charts for goal completion rates and session adherence.
 
 ### Data Aggregation
-- [ ] Create `lib/stats.js` to process historical `ls-week-*` data from `localStorage`.
-- [ ] Calculate overall completion percentages for weekly goals (Minimum Viable Week).
-- [ ] Calculate adherence percentages for scheduled sessions over time.
+- [x] Create `lib/stats.js` to process historical `ls-week-*` data from `localStorage`.
+- [x] Calculate overall completion percentages for weekly goals (Minimum Viable Week).
+- [x] Calculate adherence percentages for scheduled sessions over time.
 
 ### Visualizations
-- [ ] Add `chart.js` or a similar charting library.
-- [ ] Create `src/components/StatsDashboard.svelte`.
-- [ ] Build a line chart showing goal completion trends across past weeks.
-- [ ] Build a bar chart or radar chart showing which specific tags/habits are most frequently missed or completed.
+- [x] Add `chart.js` or a similar charting library.
+- [x] Create `src/components/StatsDashboard.svelte`.
+- [x] Build a line chart showing goal completion trends across past weeks.
+- [x] Build a bar chart or radar chart showing which specific tags/habits are most frequently missed or completed.
 
 ### Navigation
-- [ ] Add a "📊 Stats" button to the main header or Settings modal to open the dashboard.
+- [x] Add a "📊 Stats" button to the main header or Settings modal to open the dashboard.
 
 ---
 
@@ -600,25 +600,25 @@ The following decisions must be made before Sprint 0.5 begins.
 **Features delivered:** All remaining accessibility, performance, and doc items.
 
 ### Bug Bash
-- [ ] Full walkthrough: desktop Chrome
-- [ ] Full walkthrough: mobile Safari (iPhone)
-- [ ] Full walkthrough: mobile Chrome (Android)
-- [ ] Fresh account test (no existing data) — defaults load correctly
-- [ ] Dev reset — complete wipe and clean reload
-- [ ] Offline → online sync cycle end-to-end
+- [x] Full walkthrough: desktop Chrome
+- [x] Full walkthrough: mobile Safari (iPhone)
+- [x] Full walkthrough: mobile Chrome (Android)
+- [x] Fresh account test (no existing data) — defaults load correctly
+- [x] Dev reset — complete wipe and clean reload
+- [x] Offline → online sync cycle end-to-end
 
 ### Docs Update
-- [ ] Update `Architecture.md` to reflect Supabase schema and final structure
-- [ ] Update `Features.md` — mark all completed items ✅
-- [ ] Update `README.md` with live URL and final setup instructions
-- [ ] Update `Handoff.md` with final state
+- [x] Update `Architecture.md` to reflect Supabase schema and final structure
+- [x] Update `Features.md` — mark all completed items ✅
+- [x] Update `README.md` with live URL and final setup instructions
+- [x] Update `Handoff.md` with final state
 
 ### Performance & Accessibility
-- [ ] Lighthouse audit — target 90+ across Performance, Accessibility, Best Practices, PWA
-- [ ] Compress all image assets
-- [ ] Verify `font-display: swap` on all fonts
-- [ ] All interactive elements have visible focus states
-- [ ] All buttons have `aria-label` where needed
+- [x] Lighthouse audit — target 90+ across Performance, Accessibility, Best Practices, PWA
+- [x] Compress all image assets
+- [x] Verify `font-display: swap` on all fonts
+- [x] All interactive elements have visible focus states
+- [x] All buttons have `aria-label` where needed
 - [ ] Colour contrast passes WCAG AA (4.5:1)
 - [ ] App navigable by keyboard alone
 

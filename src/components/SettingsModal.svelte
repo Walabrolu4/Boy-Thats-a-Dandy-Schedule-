@@ -105,7 +105,7 @@
     <div class="modal-content" onclick={e => e.stopPropagation()}>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="margin: 0; font-size: 20px; color: var(--text);">Settings & Data</h3>
-        <button class="close-btn" onclick={closeSettings} style="background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer;">×</button>
+        <button class="close-btn" onclick={closeSettings} aria-label="Close settings" style="background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer;">×</button>
       </div>
 
       <h4 style="margin: 0 0 12px 0; font-size: 15px; color: var(--text);">App Theme</h4>

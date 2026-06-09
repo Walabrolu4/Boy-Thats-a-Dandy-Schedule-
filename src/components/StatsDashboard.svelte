@@ -137,7 +137,7 @@
     <div class="modal-content stats-modal" onclick={e => e.stopPropagation()}>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h3 style="margin: 0; font-size: 24px; color: var(--text);">Analytics & Trends</h3>
-        <button class="close-btn" onclick={close} style="background: none; border: none; color: var(--text-muted); font-size: 28px; cursor: pointer;">×</button>
+        <button class="close-btn" onclick={close} aria-label="Close analytics" style="background: none; border: none; color: var(--text-muted); font-size: 28px; cursor: pointer;">×</button>
       </div>
 
       {#if !hasData}

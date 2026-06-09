@@ -55,15 +55,15 @@
       <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">
-      <button class="btn" onclick={() => showStats = true} title="View analytics">📊 Stats</button>
-      <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals}>
+      <button class="btn" onclick={() => showStats = true} title="View analytics" aria-label="View Stats Dashboard">📊 Stats</button>
+      <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals} aria-label="{showManageGoals ? 'Close manage goals' : 'Open manage goals'}">
         {showManageGoals ? 'Close goals' : 'Manage goals'}
       </button>
-      <button class="btn {editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode}>
+      <button class="btn {editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode} aria-label="Toggle schedule edit mode">
         Edit schedule
       </button>
-      <button class="btn" onclick={resetWeek}>Reset week</button>
-      <button class="btn" onclick={toggleSettings} title="Settings & Data">⚙️</button>
+      <button class="btn" onclick={resetWeek} aria-label="Reset current week">Reset week</button>
+      <button class="btn" onclick={toggleSettings} title="Settings & Data" aria-label="Settings">⚙️</button>
     </div>
   </div>
 

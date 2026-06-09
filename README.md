@@ -1,45 +1,35 @@
 # 🌸 Boy, That's a Dandy Schedule!
 
-A personal weekly learning tracker. Plan your sessions, track completions, hit your minimum viable week, and write a reflection — all saved locally.
+A personal weekly learning tracker and habits planner. Plan your sessions, track completions, hit your minimum viable week goals, and write reflections — all completely locally in your browser.
 
 ## Features
 
-- Drag-and-drop session reordering across days
-- Minimum viable week (MVW) chip tracker
-- Micro session support (faded, doesn't count toward MVW)
-- Inline session editing (label, type, note, micro)
-- Dynamic unscheduled tasks (e.g. reading, side projects)
-- Weekly review with auto-save to localStorage
-- Save review to `logs/weekly-reviews.md` — updates existing entries in place
+- **Offline-First PWA:** Install it on your phone or desktop. Everything runs locally with zero latency.
+- **Drag-and-Drop:** Easily reorder your scheduled sessions across days.
+- **Minimum Viable Week:** Track your high-level goals (e.g. 3 workouts/week) dynamically as you check off sessions.
+- **Seasonal Remapping:** Easily mass-migrate your schedule when life changes.
+- **Analytics:** Visualize your historical habit adherence and goal completion with beautiful charts.
+- **Data Export:** Export your entire history to JSON and import it on any device.
 
-## Setup
+## Setup & Development
 
 Requires [Node.js](https://nodejs.org/).
 
-```
-node server.js
-```
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Then open [http://localhost:3131](http://localhost:3131).
+2. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
 
-Or double-click `start.bat` on Windows.
+3. **Build for production:**
+   ```bash
+   npm run build
+   ```
+   This compiles the Svelte 5 application and generates the offline service worker in the `dist` folder, which can be deployed to any static host (GitHub Pages, Netlify, Vercel).
 
-## Structure
-
-```
-app/
-  index.html
-  css/main.css
-  js/
-    data.js       # default schedule & constants
-    storage.js    # localStorage helpers
-    state.js      # UI state variables
-    mvw.js        # minimum viable week logic
-    drag.js       # drag-and-drop handlers
-    edit.js       # add/edit/remove session handlers
-    render.js     # DOM rendering
-    app.js        # top-level handlers & bootstrap
-    export.js     # weekly review save to file
-server.js         # local HTTP server + save-review API
-logs/             # generated — weekly-reviews.md saved here
-```
+## Architecture
+Built with **Svelte 5** and **Vite**. All user state is strictly maintained in the browser's `localStorage`, prioritizing speed, privacy, and simplicity over complex backend sync.
