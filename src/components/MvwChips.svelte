@@ -1,8 +1,9 @@
 <script>
   import { getMVW } from '../lib/mvw.js';
   import { getTagsSync, saveTags, getTasks, saveTasks, getSchedule, saveSchedule } from '../lib/storage.js';
+  import { globalStore, incrementScheduleVersion } from '../lib/store.svelte.js';
 
-  let { weekState, scheduleVersion, onScheduleChange, showConfig = $bindable(false) } = $props();
+  let { showConfig = $bindable(false) } = $props();
 
   let tags = $state(getTagsSync());
   let configVersion = $state(0);
@@ -11,15 +12,15 @@
   let deleteAllTasks = $state(false);
 
   let chips = $derived.by(() => {
-    scheduleVersion; // track dependency
+    globalStore.scheduleVersion; // track dependency
     configVersion;   // track config changes
-    return getMVW(weekState);
+    return getMVW(globalStore.weekState);
   });
 
   function saveConfig() {
     saveTags(tags);
     configVersion++;
-    onScheduleChange?.(); // Force app to reload tags from storage across components
+    incrementScheduleVersion(); // Force app to reload tags from storage across components
   }
 
   function adjustTarget(tag, delta) {

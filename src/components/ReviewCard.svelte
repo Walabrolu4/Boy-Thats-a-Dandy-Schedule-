@@ -2,7 +2,7 @@
   import { saveWeeklyReview } from '../lib/export.js';
   import PastReviews from './PastReviews.svelte';
 
-  let { weekState, onStateChange } = $props();
+  import { globalStore, saveGlobalState } from '../lib/store.svelte.js';
 
   let reviewOpen = $state(false);
   let q1 = $state('');
@@ -17,7 +17,7 @@
   function toggleReview() {
     reviewOpen = !reviewOpen;
     if (reviewOpen) {
-      const r = weekState.review || {};
+      const r = globalStore.weekState.review || {};
       q1 = r.q1 || '';
       q2 = r.q2 || '';
       q3 = r.q3 || '';
@@ -27,8 +27,8 @@
   function autoSaveReview() {
     clearTimeout(reviewTimer);
     reviewTimer = setTimeout(() => {
-      weekState.review = { q1, q2, q3 };
-      onStateChange(weekState);
+      globalStore.weekState.review = { q1, q2, q3 };
+      saveGlobalState();
       savedFlash = true;
       setTimeout(() => { savedFlash = false; }, 1500);
     }, 600);
@@ -68,11 +68,9 @@
     <textarea bind:value={q3} placeholder="…" oninput={autoSaveReview}></textarea>
 
     <div class="review-footer">
-      <button class="save-to-file-btn" id="saveReviewBtn"
-        disabled={savingReview}
-        onclick={handleSaveReview}>
-        {savingReview ? 'Saving…' : 'Save to file'}
-      </button>
+        <button class="save-to-file-btn" onclick={handleSaveReview} disabled={savingReview}>
+          {savingReview ? 'Generating...' : 'Export Markdown'}
+        </button>
       <span class="saved-flash {exportFlashVisible ? 'show' : ''}">{exportFlashMsg}</span>
       <span class="saved-flash autosave-flash {savedFlash ? 'show' : ''}">Auto-saved ✓</span>
     </div>

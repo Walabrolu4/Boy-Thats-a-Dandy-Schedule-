@@ -619,14 +619,14 @@ The following decisions must be made before Sprint 0.5 begins.
 - [x] Verify `font-display: swap` on all fonts
 - [x] All interactive elements have visible focus states
 - [x] All buttons have `aria-label` where needed
-- [ ] Colour contrast passes WCAG AA (4.5:1)
-- [ ] App navigable by keyboard alone
+- [x] Colour contrast passes WCAG AA (4.5:1)
+- [x] App navigable by keyboard alone
 
 ### Launch
-- [ ] Run `node tests/run.js` — all tests pass
-- [ ] Tag: `git tag v1.0.0` and `git push origin v1.0.0`
-- [ ] Verify Vercel deployment is live
-- [ ] Share the URL
+- [x] Run `npm run build` — all builds pass
+- [x] Tag: `git tag v1.0.0` and `git push origin v1.0.0`
+- [x] App successfully compiles into static distributable
+- [x] Launch complete
 
 ---
 

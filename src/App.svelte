@@ -6,14 +6,12 @@
   import ReviewCard from './components/ReviewCard.svelte';
   import SettingsModal from './components/SettingsModal.svelte';
   import StatsDashboard from './components/StatsDashboard.svelte';
-  import { getWeekKey, getState, saveState, getWeekRange, getTheme } from './lib/storage.js';
+  import { getWeekRange, getTheme } from './lib/storage.js';
   import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from './lib/data.js';
   import { generateDummyStats } from './lib/stats.js';
+  import { globalStore, toggleEditMode } from './lib/store.svelte.js';
 
   let weekRange = $state(getWeekRange());
-  let weekState = $state(getState());
-  let editMode = $state(false);
-  let scheduleVersion = $state(0);
   let showManageGoals = $state(false);
   let showSettings = $state(false);
   let showStats = $state(false);
@@ -24,21 +22,8 @@
     document.documentElement.setAttribute('data-theme', initialTheme);
   }
 
-  function handleStateChange(newState) {
-    weekState = { ...newState };
-    saveState(weekState);
-  }
-  function handleScheduleChange() {
-    scheduleVersion += 1;
-  }
-  function resetWeek() {
-    if (!confirm(`Clear all checkmarks and review for ${weekRange}?`)) return;
-    localStorage.removeItem(getWeekKey());
-    weekState = getState();
-  }
-  function toggleEditMode() {
-    editMode = !editMode;
-  }
+
+
   function toggleManageGoals() {
     showManageGoals = !showManageGoals;
   }
@@ -59,25 +44,22 @@
       <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals} aria-label="{showManageGoals ? 'Close manage goals' : 'Open manage goals'}">
         {showManageGoals ? 'Close goals' : 'Manage goals'}
       </button>
-      <button class="btn {editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode} aria-label="Toggle schedule edit mode">
+      <button class="btn {globalStore.editMode ? 'active' : ''}" id="editBtn" onclick={toggleEditMode} aria-label="Toggle schedule edit mode">
         Edit schedule
       </button>
-      <button class="btn" onclick={resetWeek} aria-label="Reset current week">Reset week</button>
       <button class="btn" onclick={toggleSettings} title="Settings & Data" aria-label="Settings">⚙️</button>
     </div>
   </div>
 
   <div class="content-container {showManageGoals ? 'showing-goals' : ''}">
-    {#if showManageGoals}
-      <MvwChips {scheduleVersion} />
-    {/if}
+    <MvwChips bind:showConfig={showManageGoals} />
 
-    <WeekGrid bind:weekState={weekState} {editMode} {scheduleVersion} onStateChange={handleStateChange} onScheduleChange={handleScheduleChange} />
+    <WeekGrid />
     
-    <TasksSection bind:weekState={weekState} {editMode} {scheduleVersion} onStateChange={handleStateChange} onScheduleChange={handleScheduleChange} />
+    <TasksSection />
   </div>
 
-  <ReviewCard bind:weekState={weekState} onStateChange={handleStateChange} />
+  <ReviewCard />
 </div>
 
 <SettingsModal bind:showSettings={showSettings} />

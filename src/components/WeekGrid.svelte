@@ -1,16 +1,15 @@
 <script>
   import { onMount } from 'svelte';
   import { getSchedule, saveSchedule, getTagsSync } from '../lib/storage.js';
-
-  let { weekState, editMode, scheduleVersion, onStateChange, onScheduleChange } = $props();
+  import { globalStore, saveGlobalState, toggleEditMode, incrementScheduleVersion } from '../lib/store.svelte.js';
 
   let days = $derived.by(() => {
-    scheduleVersion;
+    globalStore.scheduleVersion;
     return getSchedule();
   });
 
   let tags = $derived.by(() => {
-    scheduleVersion;
+    globalStore.scheduleVersion;
     return getTagsSync();
   });
 
@@ -40,11 +39,10 @@
   });
 
   function toggle(dayKey, sessionId) {
-    if (editMode || reorderMode) return;
+    if (globalStore.editMode || reorderMode) return;
     const key = `${dayKey}-${sessionId}`;
-    const newState = { ...weekState, checked: { ...weekState.checked } };
-    newState.checked[key] = !newState.checked[key];
-    onStateChange(newState);
+    globalStore.weekState.checked[key] = !globalStore.weekState.checked[key];
+    saveGlobalState();
   }
 
   function openAddForm(dayKey) {
@@ -66,14 +64,14 @@
     }
     saveSchedule(allDays);
     activeAddDay = null; pendingTagId = ''; pendingMicro = false;
-    onScheduleChange();
+    incrementScheduleVersion();
   }
 
   function removeSession(dayKey, sessionId) {
     const allDays = getSchedule();
     const d = allDays.find(d => d.key === dayKey);
     if (d) d.sessions = d.sessions.filter(s => s.id !== sessionId);
-    saveSchedule(allDays); onScheduleChange();
+    saveSchedule(allDays); incrementScheduleVersion();
   }
 
   function openEditForm(dayKey, sessionId) {
@@ -97,12 +95,12 @@
     session.label = label; session.tagId = editingTagId; session.note = noteEl?.value.trim() ?? '';
     if (editingMicro) session.micro = true; else delete session.micro;
     saveSchedule(allDays);
-    editingSession = null; onScheduleChange();
+    editingSession = null; incrementScheduleVersion();
   }
 
   // ── Touch Reorder Logic ──
   function onTouchStart(e, dayKey, sessionId) {
-    if (editMode) return;
+    if (globalStore.editMode) return;
     touchTimer = setTimeout(() => {
       reorderMode = { dayKey, sessionId };
     }, 500);
@@ -212,15 +210,18 @@
   {#each days as day}
     {@const isToday = day.jsDay === todayJsDay}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="day-col {isToday ? 'today' : ''} {day.sessions.length === 0 && !editMode ? 'empty' : ''}" data-col={day.key}
+    <div class="day-col {isToday ? 'today' : ''} {day.sessions.length === 0 && !globalStore.editMode ? 'empty' : ''}" data-col={day.key}
       ondragover={e => onColDragOver(e, day.key)}
       ondrop={e => onColDrop(e, day.key)}>
 
-      <div class="day-header" onclick={() => { if(day.sessions.length === 0 && !editMode) toggleEditMode?.(); }}>
+      <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="day-header" onclick={() => { if(day.sessions.length === 0 && !globalStore.editMode) toggleEditMode?.(); }}>
         {day.label}{#if isToday}<span class="today-dot"></span>{/if}
       </div>
 
       {#each day.sessions as session}
+        {@const key = `${day.key}-${session.id}`}
+        {@const done = !!globalStore.weekState.checked[key]}
         {@const isReorder = reorderMode?.dayKey === day.key && reorderMode?.sessionId === session.id}
         {@const tag = tags.find(t => t.id === session.tagId)}
         {#if editingSession?.dayKey === day.key && editingSession?.sessionId === session.id}
@@ -245,12 +246,10 @@
             </div>
           </div>
         {:else}
-          {@const key = `${day.key}-${session.id}`}
-          {@const done = !!weekState.checked[key]}
-          <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div class="session {session.micro?'micro':''} {done?'done':''} {!editMode?'checkable':''} {isReorder?'reorder-mode':''}"
+        <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="session {session.micro?'micro':''} {done ? 'done' : ''} {!globalStore.editMode?'checkable':''} {isReorder?'reorder-mode':''}"
             style="{tag ? `color: ${tag.color}; border: 1px solid ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : tag.color+'11'}` : 'border: 1px solid var(--border);'}"
-            draggable="true" data-session={key}
+            draggable="true"
             onclick={() => toggle(day.key, session.id)}
             ontouchstart={e => onTouchStart(e, day.key, session.id)}
             ontouchend={onTouchEndOrMove}
@@ -260,8 +259,9 @@
             ondragend={onDragEnd}
             ondragover={e => onSessionDragOver(e, day.key, session.id)}
             ondrop={e => onSessionDrop(e, day.key, session.id)}>
+            <span class="checkmark">{done ? '✓' : ''}</span>
             {session.label}<span class="note">{session.note||''}</span>
-            {#if editMode}
+            {#if globalStore.editMode}
               <span class="session-actions" draggable="false">
                 <button class="edit-btn" draggable="false"
                   onclick={e => { e.stopPropagation(); openEditForm(day.key,session.id); }} title="Edit">✎</button>
@@ -288,7 +288,7 @@
         {/if}
       {/each}
 
-      {#if editMode}
+      {#if globalStore.editMode}
         {#if activeAddDay === day.key}
           <div class="add-form">
             <input type="text" id="addname-{day.key}" placeholder="Session name"
@@ -311,7 +311,7 @@
             </div>
           </div>
         {:else}
-          <button class="add-day-btn" onclick={() => openAddForm(day.key)}>+ add session</button>
+          <button class="add-day-btn" onclick={() => openAddForm(day.key)} aria-label="Add session">+ add session</button>
         {/if}
       {/if}
     </div>

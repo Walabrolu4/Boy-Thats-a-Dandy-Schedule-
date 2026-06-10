@@ -1,8 +1,6 @@
 // ── Weekly review file export ──────────────────────────────────────────────
-// POSTs to the local server (server.js) which writes logs/weekly-reviews.md.
-// If a section for the current week already exists it is updated in place.
-// Requires the app to be served via `node server.js` on port 3131.
-// NOTE: In Sprint 5 this will be replaced with a Supabase upsert.
+// Generates a markdown file of the current week's review and triggers a
+// browser download, keeping the app 100% local and offline-capable.
 
 import { getWeekRange, getState, getSchedule, getTasks } from './storage.js';
 import { getMVW } from './mvw.js';
@@ -12,24 +10,31 @@ export async function saveWeeklyReview(callbacks = {}) {
   if (onStart) onStart();
 
   try {
-    const res = await fetch('http://localhost:3131/api/save-review', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        weekRange: getWeekRange(),
-        content:   buildWeekSection(),
-      }),
-    });
+    const weekRange = getWeekRange();
+    const content = buildWeekSection();
+    
+    // Create a Blob from the markdown content
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    // Create a temporary anchor element and trigger download
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Weekly Review - ${weekRange.replace(/[^a-zA-Z0-9 -]/g, '')}.md`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
 
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Unknown error');
-    if (onSuccess) onSuccess('Saved ✓');
+    if (onSuccess) onSuccess('Downloaded ✓');
 
   } catch (e) {
-    const msg = (e.message && e.message.toLowerCase().includes('fetch')) || e instanceof TypeError
-      ? 'Run start.bat first to enable saving'
-      : 'Error: ' + e.message;
-    if (onError) onError(msg);
+    if (onError) onError('Error: ' + e.message);
   } finally {
     if (onFinally) onFinally();
   }

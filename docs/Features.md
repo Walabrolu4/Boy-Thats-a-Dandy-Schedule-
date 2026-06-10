@@ -90,10 +90,11 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Collapsible review panel
 - ✅ Three reflection questions (why sessions missed, blockers, what to protect)
 - ✅ Auto-save to localStorage as you type
-- ✅ Save to `logs/weekly-reviews.md` via local Node server
+- ✅ Export Weekly Review directly as a markdown file via browser download
 - ✅ Upsert logic — re-saving the same week updates the entry rather than duplicating it
 - ✅ Review export includes: sessions completed, unscheduled tasks, MVW status, reflection answers
 - ✅ View past weeks' reviews in-app `→ Sprint 7`
+- 🔲 Edit past weeks' historical data `→ Backlog`
 - ✅ Stats Dashboard with Chart.js line and bar charts `→ Sprint 8`
 
 ---
@@ -113,6 +114,7 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - ✅ Scheduled / Unscheduled section headings
 - ✅ Session type legend
 - ✅ Saved flash confirmation on auto-save and file save
+- 🔲 Custom user-uploaded background image with translucent theme overlay `→ Backlog`
 - 🔲 Mobile view — responsive layout, touch-friendly tap targets, stacked grid, touch reorder `→ Sprint 2`
 - 🔲 Animations on session check-off `→ Sprint 1`
 - 🔲 Seasonal schedule re-mapping flow `→ Sprint 7`
@@ -129,3 +131,11 @@ Sprint tag: `→ Sprint X` indicates which sprint delivers the feature.
 - 🔲 Drag-and-drop visual polish (ghost element, drop zone highlight matching brand) `→ Sprint 1`
 - 🔲 Button and interactive element hover/active states consistent with DMS style `→ Sprint 1`
 - 🔲 Typography review — Pacifico + body font pairing `→ Sprint 1`
+
+---
+
+## Gamification & Notifications
+
+- 🔲 Push notifications / Reminders for scheduled sessions `→ Backlog`
+- 🔲 Weekly streaks and habit continuity tracking `→ Backlog`
+- 🔲 Secret hidden endless game with local high scores `→ Backlog`

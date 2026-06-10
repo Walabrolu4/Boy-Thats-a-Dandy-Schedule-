@@ -1,15 +1,14 @@
 <script>
   import { getTasks, saveTasks, getTagsSync } from '../lib/storage.js';
-
-  let { weekState, editMode, scheduleVersion, onStateChange, onScheduleChange } = $props();
+  import { globalStore, saveGlobalState, toggleEditMode, incrementScheduleVersion } from '../lib/store.svelte.js';
 
   let tasks = $derived.by(() => {
-    scheduleVersion; // track dependency
+    globalStore.scheduleVersion; // track dependency
     return getTasks();
   });
 
   let tags = $derived.by(() => {
-    scheduleVersion;
+    globalStore.scheduleVersion;
     return getTagsSync();
   });
 
@@ -17,10 +16,9 @@
   let pendingTagId = $state('');
 
   function toggleTask(taskId) {
-    if (editMode) return;
-    const newState = { ...weekState, tasks: { ...weekState.tasks } };
-    newState.tasks[taskId] = !newState.tasks[taskId];
-    onStateChange(newState);
+    if (globalStore.editMode) return;
+    globalStore.weekState.tasks[taskId] = !globalStore.weekState.tasks[taskId];
+    saveGlobalState();
   }
 
   function openTaskForm() {
@@ -42,15 +40,14 @@
     allTasks.push(newTask);
     saveTasks(allTasks);
     taskFormOpen = false;
-    onScheduleChange();
+    incrementScheduleVersion();
   }
 
   function removeTask(taskId) {
     saveTasks(getTasks().filter(t => t.id !== taskId));
-    const newState = { ...weekState, tasks: { ...weekState.tasks } };
-    delete newState.tasks[taskId];
-    onStateChange(newState);
-    onScheduleChange();
+    delete globalStore.weekState.tasks[taskId];
+    saveGlobalState();
+    incrementScheduleVersion();
   }
   let draggedTaskId = $state(null);
 
@@ -78,7 +75,7 @@
       const [draggedItem] = taskList.splice(draggedIndex, 1);
       taskList.splice(targetIndex, 0, draggedItem);
       saveTasks(taskList);
-      onScheduleChange(); // Trigger reactivity
+      incrementScheduleVersion(); // Trigger reactivity
     }
     draggedTaskId = null;
   }
@@ -87,27 +84,27 @@
 <div class="section-heading">Unscheduled</div>
 <div id="tasksSection">
   {#each tasks as task (task.id)}
-    {@const done = !!(weekState.tasks?.[task.id])}
+    {@const done = !!(globalStore.weekState.tasks?.[task.id])}
     {@const tag = tags.find(t => t.id === task.tagId)}
     <!-- svelte-ignore a11y_no_static_element_interactions --><!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="task-row {editMode?'task-row-edit':''} {draggedTaskId === task.id ? 'dragging' : ''}"
-      draggable={editMode}
-      ondragstart={e => { if(editMode) handleDragStart(e, task.id); }}
-      ondragover={e => { if(editMode) handleDragOver(e); }}
-      ondrop={e => { if(editMode) handleDrop(e, task.id); }}
-      onclick={() => { if (!editMode) toggleTask(task.id); }}>
+    <div class="task-row {globalStore.editMode?'task-row-edit':''} {draggedTaskId === task.id ? 'dragging' : ''}"
+      draggable={globalStore.editMode}
+      ondragstart={e => { if(globalStore.editMode) handleDragStart(e, task.id); }}
+      ondragover={e => { if(globalStore.editMode) handleDragOver(e); }}
+      ondrop={e => { if(globalStore.editMode) handleDrop(e, task.id); }}
+      onclick={() => { if (!globalStore.editMode) toggleTask(task.id); }}>
       <div class="r-check {done?'done':''}" style="{tag && done ? `background:${tag.color}; border-color:${tag.color};` : tag ? `border-color:${tag.color}80` : ''}">{done ? '✓' : ''}</div>
       <span class="reading-text" style="{tag ? `color:${tag.color}` : ''}">
         <strong>{task.label}</strong>{task.note ? ` — ${task.note}` : ''}
       </span>
-      {#if editMode}
+      {#if globalStore.editMode}
         <button class="task-del-btn"
           onclick={e => { e.stopPropagation(); removeTask(task.id); }} title="Remove">×</button>
       {/if}
     </div>
   {/each}
 
-  {#if editMode}
+  {#if globalStore.editMode}
     {#if taskFormOpen}
       <div class="task-add-form">
         <input type="text" id="new-task-label" placeholder="Task name"
@@ -115,13 +112,14 @@
         
         <div class="type-picker" style="margin-bottom: 8px;">
           <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-          <span class="type-opt {pendingTagId===''?'selected':''}"
+          <span class="task-chip {pendingTagId==='' ? 'selected' : ''}"
             style="border-color: var(--border); color: var(--text-muted); background: {pendingTagId==='' ? 'var(--surface-hover)' : 'transparent'}"
             onclick={() => { pendingTagId = ''; }}>No Goal</span>
           {#each tags as t}
+            {@const tag = t}
             <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-            <span class="type-opt {pendingTagId===t.id?'selected':''}"
-              style="color: {t.color}; border-color: {t.color}; background: {pendingTagId===t.id ? t.color+'40' : 'transparent'}"
+            <span class="task-chip {pendingTagId===t.id?'selected':''}"
+              style="color: {tag ? tag.color : 'inherit'}; border: 1px solid {tag ? (pendingTagId===t.id ? tag.color : tag.color+'40') : 'var(--border)'}; background: {tag ? (pendingTagId===t.id ? tag.color+'22' : tag.color+'11') : 'transparent'};"
               onclick={() => { pendingTagId = t.id; }}>{t.label}</span>
           {/each}
         </div>
