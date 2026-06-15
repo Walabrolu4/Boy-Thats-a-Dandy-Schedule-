@@ -66,14 +66,14 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 - [x] Wire `SyncEngine` to use `supabaseAdapter` when `provider === 'supabase'` and the user is signed in.
 
 ### Profile Schema & Storage
-- [ ] Create `profiles` table (`user_id` PK references `auth.users`, `display_name`, `avatar_url`, `updated_at`) with RLS scoped to `auth.uid()`.
-- [ ] Create an `avatars` Supabase Storage bucket with RLS policies scoped to `auth.uid()` (path prefixed by user id).
-- [ ] Implement profile get/update and avatar upload/remove (new `ProfileAdapter` or methods on `SupabaseAdapter`).
+- [x] Create `profiles` table (`user_id` PK references `auth.users`, `display_name`, `avatar_url`, `updated_at`) with RLS scoped to `auth.uid()`. See `supabase/profiles_schema.sql` (run once in the Supabase SQL editor).
+- [x] Create an `avatars` Supabase Storage bucket with RLS policies scoped to `auth.uid()` (path prefixed by user id). Included in `supabase/profiles_schema.sql`.
+- [x] Implement profile get/update and avatar upload/remove (new `ProfileAdapter` or methods on `SupabaseAdapter`). Added `getProfile()`, `updateProfile()`, `uploadAvatar()`, `removeAvatar()` to `SupabaseAdapter`.
 
 ### Account UI (Settings)
-- [ ] Add an "Account" section to the Settings Modal, alongside Cloud Sync.
-- [ ] Signed-out state: email input + "Send magic link" button + status message.
-- [ ] Signed-in state: editable display name (autosave), avatar upload/preview/remove, sign-out button.
+- [x] Add an "Account" section to the Settings Modal, alongside Cloud Sync.
+- [x] Signed-out state: instead of duplicating the magic-link form, shows a hint pointing back to the Sync section above.
+- [x] Signed-in state: editable display name (autosave on blur), avatar upload/preview/remove. (Sign-out button already existed in the Sync section.)
 
 ---
 

@@ -8,6 +8,14 @@
   let tags = $state(getTagsSync());
   let configVersion = $state(0);
 
+  // Tags can change outside this component (onboarding wizard, cloud hydrate,
+  // "Re-run Habit Setup"), all of which bump scheduleVersion - resync our copy
+  // so we don't write a stale `tags` array back over the new one.
+  $effect(() => {
+    globalStore.scheduleVersion;
+    tags = getTagsSync();
+  });
+
   let tagToDelete = $state(null);
   let deleteAllTasks = $state(false);
 

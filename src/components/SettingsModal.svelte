@@ -10,6 +10,7 @@
   let { showSettings = $bindable(false) } = $props();
 
   let fileInput = $state();
+  let avatarInput = $state();
   let showSeasonalWizard = $state(false);
   let showOnboardingWizard = $state(false);
 
@@ -26,6 +27,10 @@
   let magicLinkEmail = $state('');
   let magicLinkStatus = $state('');
   let authBusy = $state(false);
+
+  let profile = $state({ display_name: '', avatar_url: null });
+  let profileStatus = $state('');
+  let avatarBusy = $state(false);
 
   let syncStatusLabel = $derived.by(() => {
     if (syncConfig.provider === 'github') {
@@ -54,6 +59,14 @@
     return unsubscribe;
   });
 
+  $effect(() => {
+    if (syncConfig.provider === 'supabase' && supabaseUser) {
+      supabaseAdapter.getProfile().then(p => {
+        if (p) profile = { display_name: p.display_name || '', avatar_url: p.avatar_url };
+      }).catch(() => {});
+    }
+  });
+
   async function sendMagicLink() {
     authBusy = true;
     magicLinkStatus = '';
@@ -71,6 +84,51 @@
     await supabaseAdapter.signOut();
     magicLinkEmail = '';
     magicLinkStatus = '';
+  }
+
+  async function saveDisplayName() {
+    profileStatus = '';
+    try {
+      await supabaseAdapter.updateProfile({ display_name: profile.display_name });
+      profileStatus = 'Saved!';
+    } catch (e) {
+      profileStatus = 'Error: ' + e.message;
+    }
+  }
+
+  function triggerAvatarUpload() {
+    if (avatarInput) {
+      avatarInput.click();
+    }
+  }
+
+  async function handleAvatarUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    avatarBusy = true;
+    profileStatus = '';
+    try {
+      profile.avatar_url = await supabaseAdapter.uploadAvatar(file);
+    } catch (err) {
+      profileStatus = 'Error: ' + err.message;
+    } finally {
+      avatarBusy = false;
+      e.target.value = '';
+    }
+  }
+
+  async function removeAvatar() {
+    avatarBusy = true;
+    profileStatus = '';
+    try {
+      await supabaseAdapter.removeAvatar();
+      profile.avatar_url = null;
+    } catch (err) {
+      profileStatus = 'Error: ' + err.message;
+    } finally {
+      avatarBusy = false;
+    }
   }
 
   async function forceSync() {
@@ -242,6 +300,40 @@
           {/if}
         </div>
       </details>
+
+      {#if syncConfig.provider === 'supabase'}
+        <details class="settings-section">
+          <summary>Account</summary>
+          <div class="section-body">
+            {#if !supabaseUser}
+              <p class="section-hint">Sign in to Dandy Sync above to set up your profile.</p>
+            {:else}
+              <div class="profile-row">
+                {#if profile.avatar_url}
+                  <img class="avatar-preview" src={profile.avatar_url} alt="Avatar" />
+                {:else}
+                  <div class="avatar-placeholder">{(profile.display_name || supabaseUser.email || '?').charAt(0).toUpperCase()}</div>
+                {/if}
+                <div class="avatar-actions">
+                  <button class="settings-action-btn secondary" onclick={triggerAvatarUpload} disabled={avatarBusy}>
+                    {avatarBusy ? 'Working…' : '🖼️ Change Avatar'}
+                  </button>
+                  {#if profile.avatar_url}
+                    <button class="settings-action-btn secondary" onclick={removeAvatar} disabled={avatarBusy}>Remove</button>
+                  {/if}
+                  <input type="file" accept="image/*" bind:this={avatarInput} onchange={handleAvatarUpload} style="display: none;" />
+                </div>
+              </div>
+
+              <input type="text" class="sync-input" placeholder="Display Name" bind:value={profile.display_name} onblur={saveDisplayName} />
+
+              {#if profileStatus}
+                <p class="section-hint">{profileStatus}</p>
+              {/if}
+            {/if}
+          </div>
+        </details>
+      {/if}
 
       <details class="settings-section">
         <summary>Data Backup & Restore</summary>
@@ -437,5 +529,46 @@
   }
   .settings-action-btn.secondary:hover {
     background: var(--border-strong);
+  }
+
+  .profile-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .avatar-preview {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--purple-bg);
+    color: var(--purple);
+    border: 1px solid var(--purple-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .avatar-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .avatar-actions .settings-action-btn {
+    width: auto;
   }
 </style>

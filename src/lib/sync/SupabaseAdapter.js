@@ -64,6 +64,86 @@ export class SupabaseAdapter extends StorageAdapter {
   }
 
   /**
+   * @returns {Promise<{ display_name: string|null, avatar_url: string|null } | null>}
+   */
+  async getProfile() {
+    const client = this.client;
+    if (!client) return null;
+
+    const user = await this.getUser();
+    if (!user) return null;
+
+    const { data, error } = await client
+      .from('profiles')
+      .select('display_name, avatar_url')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data || { display_name: null, avatar_url: null };
+  }
+
+  async updateProfile({ display_name }) {
+    const client = this.client;
+    if (!client) throw new Error('Dandy Sync is not configured.');
+
+    const user = await this.getUser();
+    if (!user) throw new Error('Not signed in to Dandy Sync.');
+
+    const { error } = await client
+      .from('profiles')
+      .upsert({ user_id: user.id, display_name, updated_at: new Date().toISOString() });
+
+    if (error) throw error;
+  }
+
+  /**
+   * @param {File} file
+   * @returns {Promise<string>} The new avatar's public URL
+   */
+  async uploadAvatar(file) {
+    const client = this.client;
+    if (!client) throw new Error('Dandy Sync is not configured.');
+
+    const user = await this.getUser();
+    if (!user) throw new Error('Not signed in to Dandy Sync.');
+
+    const ext = file.name.split('.').pop();
+    const path = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await client.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true });
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = client.storage.from('avatars').getPublicUrl(path);
+
+    const { error } = await client
+      .from('profiles')
+      .upsert({ user_id: user.id, avatar_url: publicUrl, updated_at: new Date().toISOString() });
+    if (error) throw error;
+
+    return publicUrl;
+  }
+
+  async removeAvatar() {
+    const client = this.client;
+    if (!client) throw new Error('Dandy Sync is not configured.');
+
+    const user = await this.getUser();
+    if (!user) throw new Error('Not signed in to Dandy Sync.');
+
+    await client.storage.from('avatars').remove(
+      ['png', 'jpg', 'jpeg', 'webp', 'gif'].map(ext => `${user.id}/avatar.${ext}`)
+    );
+
+    const { error } = await client
+      .from('profiles')
+      .upsert({ user_id: user.id, avatar_url: null, updated_at: new Date().toISOString() });
+    if (error) throw error;
+  }
+
+  /**
    * @returns {Promise<{ version: string, data: Object } | null>}
    */
   async get() {
