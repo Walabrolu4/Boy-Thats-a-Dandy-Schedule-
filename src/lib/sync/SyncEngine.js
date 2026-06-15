@@ -1,4 +1,4 @@
-import { getSyncConfig, exportData, importData } from '../storage.js';
+import { getSyncConfig, exportData, importData, shouldShowOnboarding } from '../storage.js';
 import { githubAdapter } from './GitHubAdapter.js';
 import { supabaseAdapter } from './SupabaseAdapter.js';
 import { mergeState } from './merge.js';
@@ -22,7 +22,17 @@ export class SyncEngine {
     this.cloudVersion = null;
     this.supabaseUser = null;
     this.unsubscribeAuth = null;
+    this.conflictCallback = null;
     this.refreshAuthSubscription();
+  }
+
+  /**
+   * Registers a callback invoked when a sign-in hydrate finds that this
+   * device's tags/schedule/tasks/theme differ from the cloud copy. The
+   * callback must return a Promise resolving to 'local' or 'cloud'.
+   */
+  onConflict(callback) {
+    this.conflictCallback = callback;
   }
 
   /**
@@ -41,7 +51,7 @@ export class SyncEngine {
 
       if (user && !wasSignedIn) {
         // Just signed in - pull and merge cloud state for this account
-        this.hydrate();
+        this.hydrate({ checkConflict: true });
       } else if (!user && wasSignedIn) {
         // Signed out - nothing left to push to this account
         this.pending = false;
@@ -72,7 +82,14 @@ export class SyncEngine {
 
   emitStatus() {
     if (!this.statusCallback) return;
-    if (!this.isOnline) {
+
+    const config = getSyncConfig();
+    const active = (config.provider === 'github' && !!config.githubToken)
+      || (config.provider === 'supabase' && !!this.supabaseUser);
+
+    if (!active) {
+      this.statusCallback('disabled');
+    } else if (!this.isOnline) {
       this.statusCallback('offline');
     } else if (this.syncing) {
       this.statusCallback('syncing');
@@ -151,7 +168,7 @@ export class SyncEngine {
     }
   }
 
-  async hydrate() {
+  async hydrate({ checkConflict = false } = {}) {
     if (!this.isOnline) return;
     const config = getSyncConfig();
     const adapter = await this.getAdapter(config);
@@ -188,9 +205,30 @@ export class SyncEngine {
           cloudData[weekKey] = mergeState(localData[weekKey], cloudData[weekKey]);
         }
 
-        // Import everything else (LWW override by cloud)
+        // tags/schedule/tasks/theme have no per-field timestamps, so on sign-in
+        // (when local edits may have happened while signed out) ask the user
+        // which copy to keep - unless this device is still mid-onboarding,
+        // in which case the cloud copy always wins.
+        let keptLocal = false;
+        if (checkConflict && !shouldShowOnboarding()) {
+          const blobKeys = ['tags', 'schedule', 'tasks', 'theme'];
+          const differs = blobKeys.some(k => JSON.stringify(localData[k]) !== JSON.stringify(cloudData[k]));
+          if (differs && this.conflictCallback) {
+            const choice = await this.conflictCallback();
+            if (choice === 'local') {
+              keptLocal = true;
+              for (const k of blobKeys) cloudData[k] = localData[k];
+            }
+          }
+        }
+
+        // Import everything else (LWW override by cloud, unless local was chosen above)
         importData(cloudData);
         window.dispatchEvent(new CustomEvent('dms-hydrated'));
+
+        if (keptLocal) {
+          this.cloudVersion = await adapter.set(exportData(), this.cloudVersion);
+        }
       } else {
         // No cloud row yet for this account - push local state to create it.
         this.cloudVersion = await adapter.set(exportData(), null);

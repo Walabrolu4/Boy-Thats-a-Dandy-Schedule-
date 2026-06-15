@@ -7,7 +7,9 @@
   import SettingsModal from './components/SettingsModal.svelte';
   import StatsDashboard from './components/StatsDashboard.svelte';
   import HydratingOverlay from './components/HydratingOverlay.svelte';
-  import { getWeekRange, getWeekLabel, getTheme } from './lib/storage.js';
+  import OnboardingWizard from './components/OnboardingWizard.svelte';
+  import SyncConflictModal from './components/SyncConflictModal.svelte';
+  import { getWeekRange, getWeekLabel, getTheme, shouldShowOnboarding } from './lib/storage.js';
   import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from './lib/data.js';
   import { generateDummyStats } from './lib/stats.js';
   import { globalStore, toggleEditMode } from './lib/store.svelte.js';
@@ -18,6 +20,14 @@
   let showManageGoals = $state(false);
   let showSettings = $state(false);
   let showStats = $state(false);
+  let showOnboarding = $state(false);
+  let showSyncConflict = $state(false);
+  let syncConflictResolve = null;
+
+  function resolveSyncConflict(choice) {
+    if (syncConflictResolve) syncConflictResolve(choice);
+    syncConflictResolve = null;
+  }
 
   // Apply the theme on initial load
   let initialTheme = getTheme();
@@ -35,9 +45,15 @@
   }
 
   onMount(async () => {
+    syncEngine.onConflict(() => new Promise(resolve => {
+      syncConflictResolve = resolve;
+      showSyncConflict = true;
+    }));
+
     globalStore.isHydrating = true;
     await syncEngine.hydrate();
     globalStore.isHydrating = false;
+    if (shouldShowOnboarding()) showOnboarding = true;
   });
 </script>
 
@@ -58,11 +74,12 @@
         Edit schedule
       </button>
       <button class="btn" onclick={toggleSettings} title="Settings & Data" aria-label="Settings">⚙️</button>
-      <div class="sync-status {globalStore.syncStatus}" title="Sync status: {globalStore.syncStatus}">
+      <div class="sync-status {globalStore.syncStatus}" title={globalStore.syncStatus === 'disabled' ? 'Cloud sync is off' : `Sync status: ${globalStore.syncStatus}`}>
         {#if globalStore.syncStatus === 'synced'}🟢
         {:else if globalStore.syncStatus === 'syncing'}🟡
         {:else if globalStore.syncStatus === 'pending'}🔴
-        {:else if globalStore.syncStatus === 'offline'}🌑{/if}
+        {:else if globalStore.syncStatus === 'offline'}🌑
+        {:else if globalStore.syncStatus === 'disabled'}⚪{/if}
       </div>
     </div>
   </div>
@@ -82,6 +99,8 @@
 
 <SettingsModal bind:showSettings={showSettings} />
 <StatsDashboard bind:showStats={showStats} />
+<OnboardingWizard bind:showWizard={showOnboarding} />
+<SyncConflictModal bind:show={showSyncConflict} onResolve={resolveSyncConflict} />
 
 <footer class="app-footer">
   <span class="footer-rule"></span>

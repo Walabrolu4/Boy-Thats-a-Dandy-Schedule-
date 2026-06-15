@@ -1,6 +1,7 @@
 <script>
   import ThemePicker from './ThemePicker.svelte';
   import SeasonalWizard from './SeasonalWizard.svelte';
+  import OnboardingWizard from './OnboardingWizard.svelte';
 
   import { getSyncConfig, saveSyncConfig } from '../lib/storage.js';
   import { syncEngine } from '../lib/sync/SyncEngine.js';
@@ -10,6 +11,13 @@
 
   let fileInput = $state();
   let showSeasonalWizard = $state(false);
+  let showOnboardingWizard = $state(false);
+
+  function rerunOnboarding() {
+    if (confirm("This will replace your current goals and schedule with a freshly generated week based on habits you list. Continue?")) {
+      showOnboardingWizard = true;
+    }
+  }
 
   let syncConfig = $state(getSyncConfig());
   let showToken = $state(false);
@@ -129,15 +137,11 @@
     };
     reader.readAsText(file);
   }
-  import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from '../lib/data.js';
   import { generateDummyStats } from '../lib/stats.js';
 
   function devReset() {
-    if (!confirm('Nuke all localStorage data? This will reset the app entirely.')) return;
+    if (!confirm('Nuke all localStorage data? This will reset the app entirely and run onboarding again.')) return;
     localStorage.clear();
-    localStorage.setItem('ls-tags', JSON.stringify(DEFAULT_TAGS));
-    localStorage.setItem('ls-schedule', JSON.stringify(DEFAULT_DAYS));
-    localStorage.setItem('ls-tasks', JSON.stringify(DEFAULT_TASKS));
     window.location.reload();
   }
   
@@ -264,6 +268,9 @@
           <button class="settings-action-btn secondary" onclick={() => showSeasonalWizard = true}>
             🍂 Seasonal Re-mapping
           </button>
+          <button class="settings-action-btn secondary" onclick={rerunOnboarding}>
+            ✨ Re-run Habit Setup
+          </button>
         </div>
       </details>
 
@@ -286,6 +293,7 @@
 {/if}
 
 <SeasonalWizard bind:showWizard={showSeasonalWizard} onComplete={() => { showSeasonalWizard = false; window.location.reload(); }} />
+<OnboardingWizard bind:showWizard={showOnboardingWizard} dismissable={true} onComplete={() => { showOnboardingWizard = false; window.location.reload(); }} />
 
 <style>
   .modal-header {

@@ -128,6 +128,26 @@ export function saveState(s, offset = 0) {
   localStoreAdapter.setSync(getWeekKey(offset), s);
 }
 
+// ── Onboarding ──
+
+export function isOnboarded() {
+  return localStorage.getItem('ls-onboarded') === 'true';
+}
+
+export function markOnboarded() {
+  localStorage.setItem('ls-onboarded', 'true');
+}
+
+// True only for a genuinely fresh install: the onboarding flag isn't set and
+// no schedule/tags/week data exists yet (so a second device hydrating an
+// existing cloud account - which writes those keys via importData before
+// this is checked - won't be prompted again).
+export function shouldShowOnboarding() {
+  if (isOnboarded()) return false;
+  if (localStorage.getItem('ls-schedule') || localStorage.getItem('ls-tags')) return false;
+  return getAllWeekKeys().length === 0;
+}
+
 // ── Theme ──
 
 export function getTheme() {
