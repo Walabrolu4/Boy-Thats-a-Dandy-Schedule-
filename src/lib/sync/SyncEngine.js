@@ -1,4 +1,4 @@
-import { getSyncConfig, exportData, importData, shouldShowOnboarding } from '../storage.js';
+import { getSyncConfig, exportData, importData } from '../storage.js';
 import { githubAdapter } from './GitHubAdapter.js';
 import { supabaseAdapter } from './SupabaseAdapter.js';
 import { mergeState } from './merge.js';
@@ -207,10 +207,13 @@ export class SyncEngine {
 
         // tags/schedule/tasks/theme have no per-field timestamps, so on sign-in
         // (when local edits may have happened while signed out) ask the user
-        // which copy to keep - unless this device is still mid-onboarding,
-        // in which case the cloud copy always wins.
+        // which copy to keep - but only if this device actually has week
+        // history worth protecting. A device with no ls-week-* entries has
+        // nothing real to lose (even if it just ran onboarding), so the
+        // cloud copy always wins silently in that case.
+        const localHasHistory = Object.keys(localData).some(k => k.startsWith('ls-week-'));
         let keptLocal = false;
-        if (checkConflict && !shouldShowOnboarding()) {
+        if (checkConflict && localHasHistory) {
           const blobKeys = ['tags', 'schedule', 'tasks', 'theme'];
           const differs = blobKeys.some(k => JSON.stringify(localData[k]) !== JSON.stringify(cloudData[k]));
           if (differs && this.conflictCallback) {

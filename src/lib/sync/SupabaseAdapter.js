@@ -41,7 +41,10 @@ export class SupabaseAdapter extends StorageAdapter {
     if (ALLOWED_EMAIL && email.trim().toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
       throw new Error('Dandy Sync is currently limited to the project owner during early access. Use GitHub sync instead, or self-host with your own Supabase project.');
     }
-    const { error } = await client.auth.signInWithOtp({ email });
+    const { error } = await client.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin },
+    });
     if (error) throw error;
   }
 
