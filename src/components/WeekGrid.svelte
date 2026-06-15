@@ -29,7 +29,8 @@
   let editingTagId = $state('');
   let editingMicro = $state(false);
   let dragState = $state(null);
-  
+  let draggingKey = $state(null);
+
   // ── Touch Reorder State ──
   let touchTimer = null;
   let reorderMode = $state(null);
@@ -127,7 +128,7 @@
     } else if (dir === 1 && idx < d.sessions.length - 1) {
       const temp = d.sessions[idx]; d.sessions[idx] = d.sessions[idx + 1]; d.sessions[idx + 1] = temp;
     } else return;
-    saveSchedule(allDays); onScheduleChange();
+    saveSchedule(allDays); incrementScheduleVersion();
   }
   function moveToDay(e) {
     const toDay = e.target.value;
@@ -141,11 +142,12 @@
 
   // ── Drag and drop ──
   function onDragStart(e, dayKey, sessionId) {
-    dragState = { fromDay: dayKey, sessionId, el: e.currentTarget };
+    dragState = { fromDay: dayKey, sessionId };
     e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', '');
-    requestAnimationFrame(() => dragState?.el?.classList.add('dragging'));
+    // Delay so the browser's drag-ghost image is captured before the item dims.
+    requestAnimationFrame(() => { draggingKey = `${dayKey}-${sessionId}`; });
   }
-  function onDragEnd() { dragState?.el?.classList.remove('dragging'); dragState = null; clearDropUI(); }
+  function onDragEnd() { draggingKey = null; dragState = null; clearDropUI(); }
   function onSessionDragOver(e, dayKey, sessionId) {
     if (!dragState) return;
     e.preventDefault(); e.stopPropagation();
@@ -186,6 +188,12 @@
     const session = fromDayObj.sessions.find(s => s.id === fromId);
     if (!session) return;
     fromDayObj.sessions = fromDayObj.sessions.filter(s => s.id !== fromId);
+    // Default sessions reuse the same id across days (e.g. every day has a
+    // 'stretch'/'meditate' session) - avoid landing two sessions with the
+    // same id in one day, which collides on checkmark keys and each-block keys.
+    if (fromDay !== toDay && toDayObj.sessions.some(s => s.id === session.id)) {
+      session.id = `${session.id}-${Date.now()}`;
+    }
     if (!targetSessionId || pos === 'end') {
       toDayObj.sessions.push(session);
     } else {
@@ -193,7 +201,7 @@
       if (idx === -1) toDayObj.sessions.push(session);
       else { if (pos === 'after') idx++; toDayObj.sessions.splice(idx, 0, session); }
     }
-    saveSchedule(allDays); dragState = null; onScheduleChange();
+    saveSchedule(allDays); dragState = null; draggingKey = null; incrementScheduleVersion();
   }
 
   // Reset transient per-week UI state - it referenced the previous week's sessions.
@@ -205,6 +213,7 @@
     editingTagId = '';
     editingMicro = false;
     dragState = null;
+    draggingKey = null;
     reorderMode = null;
   }
 
@@ -265,6 +274,7 @@
         {@const key = `${day.key}-${session.id}`}
         {@const done = !!globalStore.weekState.checked[key]?.value}
         {@const isReorder = reorderMode?.dayKey === day.key && reorderMode?.sessionId === session.id}
+        {@const isDragging = draggingKey === key}
         {@const tag = tags.find(t => t.id === session.tagId)}
         {#if editingSession?.dayKey === day.key && editingSession?.sessionId === session.id}
           <div class="add-form">
@@ -289,7 +299,7 @@
           </div>
         {:else}
         <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="session {session.micro?'micro':''} {done ? 'done' : ''} {!globalStore.editMode?'checkable':''} {isReorder?'reorder-mode':''}"
+        <div class="session {session.micro?'micro':''} {done ? 'done' : ''} {!globalStore.editMode?'checkable':''} {isReorder?'reorder-mode':''} {isDragging?'dragging':''}"
             style="{tag ? `color: ${tag.color}; border: 1px solid ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : tag.color+'11'}` : 'border: 1px solid var(--border);'}"
             draggable="true"
             onclick={() => toggle(day.key, session.id)}

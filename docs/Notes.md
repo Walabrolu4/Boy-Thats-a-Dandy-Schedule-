@@ -121,5 +121,14 @@ Added a small follow-up: clicking the center week-nav label (`.week-nav-label`) 
 - Fixed duplicate week label (e.g. "May 22 – May 28 · May 22 – May 28") for weeks with no special Last/This/Next label - `App.svelte` and `WeekGrid.svelte`'s nav bar now only show the date range if it differs from the label.
 - **Schedule history correctness**: `storage.js`'s `saveState()` now keeps `scheduleSnapshot` in sync with the live `ls-schedule` template for the current week and next week (`offset >= 0`), but leaves a past week's snapshot frozen once set. `WeekGrid.svelte`'s `days` derived now reads `weekState.scheduleSnapshot` (falling back to the live schedule) when `weekOffset < 0`, so past weeks show what the schedule actually was that week, while this/next week always reflect live edits. "Edit schedule" is now disabled (with a tooltip) when viewing a past week, and `setWeekOffset` auto-exits edit mode when navigating into the past.
 - Moved the sync status dot to the right of the settings cog (was between the title and Stats button) and shrank it (`font-size: 10px`, `min-height/width: 24px`); tooltip on hover unchanged.
+- Also fixed a real data-loss bug: task/schedule/tag edits never called `schedulePush()`, so `hydrate()` on refresh could overwrite a freshly-added task with a stale cloud copy. `incrementScheduleVersion()` now pushes immediately, and `hydrate()` pushes any pending local edits before pulling.
+- Added an early-access lock for Dandy Sync (single shared managed backend, open-source repo): `VITE_DANDY_SYNC_ALLOWED_EMAIL` env var gates magic-link sign-in client-side in `SupabaseAdapter.js`, and `supabase/lock_dandy_sync_email.sql` adds a Postgres `before insert on auth.users` trigger rejecting any other email - the real enforcement, since the anon key is public in the built app.
 
-**Not committed yet** - awaiting verification.
+All committed and pushed as `209cc1c`. The user has run `lock_dandy_sync_email.sql` against the live Supabase project, so Dandy Sync sign-up is now restricted to the project owner's email.
+
+**Drag-and-drop fixes (`WeekGrid.svelte`):**
+- `moveReorder()`/`performMove()` called a leftover `onScheduleChange()` prop callback removed during the Sprint 1.5 runes refactor, throwing a `ReferenceError` on every reorder/move - replaced with `incrementScheduleVersion()`.
+- The "item above goes semi-transparent" glitch was from imperative `classList` manipulation on `e.currentTarget` for the `.dragging` class; replaced with a `draggingKey` `$state` + reactive `isDragging` class binding.
+- Fixed a fatal crash (white screen on refresh): `DEFAULT_DAYS` reuses session ids (e.g. `'stretch'`) across every day, so moving a session into a day that already has that id created a duplicate key in that day's keyed `{#each}`, which Svelte treats as fatal. Reverted the each-block key (not needed once `isDragging` no longer relies on DOM identity) and made `performMove` regenerate the moved session's id when the destination day already has a session with that id.
+
+All verified via `npx vitest run` (12/12 passing).
