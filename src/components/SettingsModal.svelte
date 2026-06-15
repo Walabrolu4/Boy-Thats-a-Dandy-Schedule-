@@ -2,10 +2,25 @@
   import ThemePicker from './ThemePicker.svelte';
   import SeasonalWizard from './SeasonalWizard.svelte';
 
+  import { getSyncConfig, saveSyncConfig } from '../lib/storage.js';
+  import { syncEngine } from '../lib/sync/SyncEngine.js';
+
   let { showSettings = $bindable(false) } = $props();
 
   let fileInput = $state();
   let showSeasonalWizard = $state(false);
+
+  let syncConfig = $state(getSyncConfig());
+  let showToken = $state(false);
+
+  $effect(() => {
+    // Automatically save sync config when it changes
+    saveSyncConfig(syncConfig);
+  });
+
+  async function forceSync() {
+    await syncEngine.hydrate();
+  }
 
   function closeSettings() {
     showSettings = false;
@@ -111,6 +126,34 @@
       <h4 style="margin: 0 0 12px 0; font-size: 15px; color: var(--text);">App Theme</h4>
       <ThemePicker />
 
+      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Cloud Sync (GitHub)</h4>
+      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
+        Bring Your Own Sync! Enter a private GitHub repository and a Personal Access Token to sync your data across devices for free.
+      </p>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 14px;">
+          <input type="checkbox" checked={syncConfig.provider === 'github'} onchange={(e) => syncConfig.provider = e.target.checked ? 'github' : 'none'} />
+          Enable GitHub Sync
+        </label>
+
+        {#if syncConfig.provider === 'github'}
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+            1. Create a private GitHub repository (any name) to hold your synced data.<br />
+            2. <a href="https://github.com/settings/tokens/new?description=Dandy+Routine+Sync&scopes=repo" target="_blank" rel="noopener noreferrer">Create a Personal Access Token</a> with the <code>repo</code> scope, then paste it below.
+          </p>
+          <input type="text" class="sync-input" placeholder="GitHub Username (e.g. octocat)" bind:value={syncConfig.githubUsername} />
+          <input type="text" class="sync-input" placeholder="Repository Name (e.g. my-dandy-sync)" bind:value={syncConfig.githubRepo} />
+          <div class="token-input-wrap">
+            <input type={showToken ? 'text' : 'password'} class="sync-input" placeholder="Personal Access Token (classic or fine-grained)" bind:value={syncConfig.githubToken} />
+            <button type="button" class="token-toggle-btn" onclick={() => showToken = !showToken} aria-label={showToken ? 'Hide token' : 'Show token'} title={showToken ? 'Hide token' : 'Show token'}>
+              {showToken ? '🙈' : '👁️'}
+            </button>
+          </div>
+          <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
+        {/if}
+      </div>
+
       <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Data Backup & Restore</h4>
       <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
         Export your entire schedule, goals, tasks, and history to a single JSON file. You can import this file later to completely restore your setup.
@@ -154,6 +197,34 @@
 <SeasonalWizard bind:showWizard={showSeasonalWizard} onComplete={() => { showSeasonalWizard = false; window.location.reload(); }} />
 
 <style>
+  .sync-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-hover);
+    color: var(--text);
+    font-size: 14px;
+  }
+  .token-input-wrap {
+    position: relative;
+    display: flex;
+  }
+  .token-input-wrap .sync-input {
+    padding-right: 40px;
+  }
+  .token-toggle-btn {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 6px 8px;
+    line-height: 1;
+  }
   .settings-action-btn {
     width: 100%;
     padding: 12px;

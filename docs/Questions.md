@@ -56,3 +56,13 @@ Format:
 - B) Prefer to avoid it — keep the zero-dependency approach
 **Needed from:** human.
 **Status:** resolved — Yes, an npm build step is acceptable for the benefits of Vite/Svelte.
+
+---
+
+### Q6: `stats.js` reads `state.checkmarks` but saved data uses `state.checked`
+**Context:** While fixing the Sprint 10 CRDT regression, found that `getStats()` in `src/lib/stats.js` (line ~35) reads historical week data via `state.checkmarks`, but `getState()`/`saveState()` in `storage.js` store sessions under `state.checked`. This looks like a pre-existing bug from Sprint 8 (Stats Dashboard) — `state.checkmarks` is always `undefined` for real saved weeks, so `checkedCount` and `tagCompletions` are likely always 0 in the historical adherence stats. The `tasks` completion count (line ~52) was fixed as part of this session's CRDT work, but the `checkmarks`/`checked` mismatch is separate and was left untouched to keep this session's scope to Sprint 10-12.
+**Options:**
+- A) Fix now as a quick follow-up (rename `state.checkmarks` → `state.checked` in `stats.js`, verify against real saved week data)
+- B) File as a Sprint 8.5 / backlog bug fix for a dedicated session
+**Needed from:** human — confirm whether historical adherence % currently looks wrong in the Stats Dashboard (would confirm this bug is live) and whether to fix now or later.
+**Status:** open

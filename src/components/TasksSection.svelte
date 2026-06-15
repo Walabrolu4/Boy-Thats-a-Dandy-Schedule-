@@ -17,7 +17,8 @@
 
   function toggleTask(taskId) {
     if (globalStore.editMode) return;
-    globalStore.weekState.tasks[taskId] = !globalStore.weekState.tasks[taskId];
+    const current = globalStore.weekState.tasks[taskId]?.value ?? false;
+    globalStore.weekState.tasks[taskId] = { value: !current, updatedAt: Date.now() };
     saveGlobalState();
   }
 
@@ -84,7 +85,7 @@
 <div class="section-heading">Unscheduled</div>
 <div id="tasksSection">
   {#each tasks as task (task.id)}
-    {@const done = !!(globalStore.weekState.tasks?.[task.id])}
+    {@const done = !!(globalStore.weekState.tasks?.[task.id]?.value)}
     {@const tag = tags.find(t => t.id === task.tagId)}
     <!-- svelte-ignore a11y_no_static_element_interactions --><!-- svelte-ignore a11y_click_events_have_key_events -->
     <div class="task-row {globalStore.editMode?'task-row-edit':''} {draggedTaskId === task.id ? 'dragging' : ''}"

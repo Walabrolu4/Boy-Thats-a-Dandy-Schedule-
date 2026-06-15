@@ -21,7 +21,7 @@ export function getMVW(state) {
       // Wait, let's keep it simple: if it's checked, it counts.
       if (session.micro) continue; 
       
-      if (!checked[`${day.key}-${session.id}`]) continue;
+      if (!checked[`${day.key}-${session.id}`]?.value) continue;
 
       if (session.tagId && progress[session.tagId] !== undefined) {
         progress[session.tagId]++;
@@ -32,7 +32,7 @@ export function getMVW(state) {
   // Count floating tasks
   const allTasks = getTasks();
   for (const task of allTasks) {
-    if (!state.tasks || !state.tasks[task.id]) continue;
+    if (!state.tasks || !state.tasks[task.id]?.value) continue;
     
     // If the task belongs to a tag, count it towards the tag
     if (task.tagId && progress[task.tagId] !== undefined) {

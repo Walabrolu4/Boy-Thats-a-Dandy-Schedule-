@@ -41,7 +41,8 @@
   function toggle(dayKey, sessionId) {
     if (globalStore.editMode || reorderMode) return;
     const key = `${dayKey}-${sessionId}`;
-    globalStore.weekState.checked[key] = !globalStore.weekState.checked[key];
+    const current = globalStore.weekState.checked[key]?.value ?? false;
+    globalStore.weekState.checked[key] = { value: !current, updatedAt: Date.now() };
     saveGlobalState();
   }
 
@@ -221,7 +222,7 @@
 
       {#each day.sessions as session}
         {@const key = `${day.key}-${session.id}`}
-        {@const done = !!globalStore.weekState.checked[key]}
+        {@const done = !!globalStore.weekState.checked[key]?.value}
         {@const isReorder = reorderMode?.dayKey === day.key && reorderMode?.sessionId === session.id}
         {@const tag = tags.find(t => t.id === session.tagId)}
         {#if editingSession?.dayKey === day.key && editingSession?.sessionId === session.id}

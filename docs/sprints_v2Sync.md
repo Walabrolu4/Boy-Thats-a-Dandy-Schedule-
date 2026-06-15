@@ -8,14 +8,14 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 **Goal:** Decouple the application from naive `localStorage` and implement robust conflict resolution to prepare for multi-device sync.
 
 ### Abstraction Layer
-- [ ] Create `StorageAdapter` interface.
-- [ ] Implement `LocalStorageAdapter` that adheres to the new interface.
-- [ ] Refactor all Svelte components to use the adapter instead of calling `localStorage` directly.
+- [x] Create `StorageAdapter` interface.
+- [x] Implement `LocalStorageAdapter` that adheres to the new interface.
+- [x] Refactor all Svelte components to use the adapter instead of calling `localStorage` directly.
 
 ### State Conflict Resolution (Last-Write-Wins)
-- [ ] Refactor `state.checked` and `state.tasks` from simple booleans to timestamped objects: `{ value: true, updatedAt: 17180000 }`.
-- [ ] Implement `mergeState(local, cloud)` utility to resolve conflicts using LWW timestamps.
-- [ ] Write Vitest unit tests verifying correct merge behavior on conflicting local and cloud changes.
+- [x] Refactor `state.checked` and `state.tasks` from simple booleans to timestamped objects: `{ value: true, updatedAt: 17180000 }`.
+- [x] Implement `mergeState(local, cloud)` utility to resolve conflicts using LWW timestamps.
+- [x] Write Vitest unit tests verifying correct merge behavior on conflicting local and cloud changes.
 
 ---
 
@@ -23,13 +23,13 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 **Goal:** Build the background worker that handles pushing and pulling data automatically without locking the UI.
 
 ### Offline Queue
-- [ ] Create an offline mutation queue that stores pending actions if the device has no internet connection.
-- [ ] Implement a debounced "Flush" mechanism that runs 5 minutes after inactivity or on page hide, pushing the queue to the active storage adapter.
-- [ ] Hook into `navigator.onLine` to trigger a queue flush upon reconnection.
+- [x] Create an offline mutation queue that stores pending actions if the device has no internet connection.
+- [x] Implement a debounced "Flush" mechanism that runs 5 minutes after inactivity or on page hide, pushing the queue to the active storage adapter.
+- [x] Hook into `navigator.onLine` to trigger a queue flush upon reconnection.
 
 ### Sync UI
-- [ ] Add a visual "Sync Status" indicator in the application header (e.g., 🟢 Synced, 🟡 Syncing, 🔴 Offline/Pending).
-- [ ] Implement an initial "Hydrate" screen overlay that briefly blocks UI when first downloading cloud state on a new device.
+- [x] Add a visual "Sync Status" indicator in the application header (e.g., 🟢 Synced, 🟡 Syncing, 🔴 Offline/Pending).
+- [x] Implement an initial "Hydrate" screen overlay that briefly blocks UI when first downloading cloud state on a new device.
 
 ---
 
@@ -37,13 +37,13 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 **Goal:** Implement the power-user feature allowing users to sync their data for free via a private GitHub repository.
 
 ### GitHub Adapter
-- [ ] Implement `GitHubAdapter` that uses the GitHub REST API to read/write JSON files to a specified repository.
-- [ ] Implement file lock or ETag checking to prevent overwriting parallel commits from other devices.
+- [x] Implement `GitHubAdapter` that uses the GitHub REST API to read/write JSON files to a specified repository.
+- [x] Implement file lock or ETag checking to prevent overwriting parallel commits from other devices.
 
 ### Settings UI
-- [ ] Create a "Bring Your Own Sync" configuration section in the Settings Modal.
-- [ ] Add input fields for: GitHub Username, Repository Name, and Personal Access Token (PAT).
-- [ ] Encrypt/Securely store the PAT locally so it is not exposed in plain text.
+- [x] Create a "Bring Your Own Sync" configuration section in the Settings Modal.
+- [x] Add input fields for: GitHub Username, Repository Name, and Personal Access Token (PAT).
+- [x] Encrypt/Securely store the PAT locally so it is not exposed in plain text.
 
 ---
 

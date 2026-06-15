@@ -54,7 +54,7 @@ export function buildWeekSection() {
   const completedLines = [];
   for (const day of days) {
     for (const s of day.sessions) {
-      if (checked[`${day.key}-${s.id}`]) {
+      if (checked[`${day.key}-${s.id}`]?.value) {
         const tag = s.micro ? ' *(micro)*' : '';
         completedLines.push(`- ${day.label}: **${s.label}**${tag}`);
       }
@@ -64,7 +64,7 @@ export function buildWeekSection() {
 
   // Unscheduled tasks
   const taskLines = tasks.length
-    ? tasks.map(t => `- ${tasksDone[t.id] ? '✓' : '✗'} ${t.label}`)
+    ? tasks.map(t => `- ${tasksDone[t.id]?.value ? '✓' : '✗'} ${t.label}`)
     : ['- None'];
 
   // MVW summary

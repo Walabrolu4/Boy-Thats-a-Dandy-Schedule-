@@ -6,10 +6,12 @@
   import ReviewCard from './components/ReviewCard.svelte';
   import SettingsModal from './components/SettingsModal.svelte';
   import StatsDashboard from './components/StatsDashboard.svelte';
+  import HydratingOverlay from './components/HydratingOverlay.svelte';
   import { getWeekRange, getTheme } from './lib/storage.js';
   import { DEFAULT_TAGS, DEFAULT_DAYS, DEFAULT_TASKS } from './lib/data.js';
   import { generateDummyStats } from './lib/stats.js';
   import { globalStore, toggleEditMode } from './lib/store.svelte.js';
+  import { syncEngine } from './lib/sync/SyncEngine.js';
 
   let weekRange = $state(getWeekRange());
   let showManageGoals = $state(false);
@@ -30,6 +32,12 @@
   function toggleSettings() {
     showSettings = !showSettings;
   }
+
+  onMount(async () => {
+    globalStore.isHydrating = true;
+    await syncEngine.hydrate();
+    globalStore.isHydrating = false;
+  });
 </script>
 
 <div class="app">
@@ -40,6 +48,13 @@
       <div class="week-label">{weekRange}</div>
     </div>
     <div class="header-btns">
+
+      <div class="sync-status {globalStore.syncStatus}" title="Sync status: {globalStore.syncStatus}">
+        {#if globalStore.syncStatus === 'synced'}🟢
+        {:else if globalStore.syncStatus === 'syncing'}🟡
+        {:else if globalStore.syncStatus === 'pending'}🔴
+        {:else if globalStore.syncStatus === 'offline'}🌑{/if}
+      </div>
       <button class="btn" onclick={() => showStats = true} title="View analytics" aria-label="View Stats Dashboard">📊 Stats</button>
       <button class="btn {showManageGoals ? 'active' : ''}" onclick={toggleManageGoals} aria-label="{showManageGoals ? 'Close manage goals' : 'Open manage goals'}">
         {showManageGoals ? 'Close goals' : 'Manage goals'}
@@ -60,6 +75,8 @@
   </div>
 
   <ReviewCard />
+
+  <HydratingOverlay isHydrating={globalStore.isHydrating} />
 </div>
 
 <SettingsModal bind:showSettings={showSettings} />

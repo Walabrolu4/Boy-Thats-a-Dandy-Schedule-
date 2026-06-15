@@ -28,12 +28,12 @@ describe('Unified Tags MVW Logic', () => {
   it('respects custom targets across scheduled blocks and floating tasks', () => {
     const state = {
       checked: {
-        'mon-s1': true, // 1 stretch
-        'mon-s2': true, // 1 exercise
-        'mon-s3': true  // 1 prog
+        'mon-s1': { value: true, updatedAt: 1 }, // 1 stretch
+        'mon-s2': { value: true, updatedAt: 1 }, // 1 exercise
+        'mon-s3': { value: true, updatedAt: 1 }  // 1 prog
       },
       tasks: {
-        't1': true      // 1 reading task done
+        't1': { value: true, updatedAt: 1 }      // 1 reading task done
       }
     };
 

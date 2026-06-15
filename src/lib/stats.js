@@ -49,8 +49,8 @@ export function getStats() {
         // Also count completed tasks
         let completedTasks = 0;
         if (state && state.tasks) {
-          for (const isDone of Object.values(state.tasks)) {
-            if (isDone) completedTasks++;
+          for (const entry of Object.values(state.tasks)) {
+            if (entry?.value) completedTasks++;
           }
         }
 
