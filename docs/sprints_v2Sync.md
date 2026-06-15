@@ -51,9 +51,9 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 **Goal:** Implement the frictionless, paid-tier managed sync solution using Supabase.
 
 ### Supabase Adapter
-- [ ] Implement `SupabaseAdapter`.
-- [ ] Design Supabase schema for storing timestamped checkmarks and reviews.
-- [ ] Implement Row Level Security (RLS) policies ensuring users can only read/write their own UID data.
+- [x] Implement `SupabaseAdapter`.
+- [x] Design Supabase schema for storing timestamped checkmarks and reviews.
+- [x] Implement Row Level Security (RLS) policies ensuring users can only read/write their own UID data.
 
 ### Authentication UI
 - [ ] Implement a "Dandy Sync" login portal in the Settings Modal using Supabase Magic Link auth.

@@ -59,6 +59,17 @@ Format:
 
 ---
 
+### Q7: Is "Dandy Sync" (Sprint 13) a shared multi-user Supabase backend, or BYO Supabase?
+**Context:** `sprints_v2Sync.md` frames Sprint 13 as "the frictionless, paid-tier managed sync solution" with a magic-link login portal and sign-out flow — this is ambiguous between (a) one Supabase project hosted by Kaushik, with RLS isolating each signed-in user's rows, vs (b) each user bringing their own Supabase project/keys (parallel to the GitHub BYO-sync from Sprint 12), vs (c) single-tenant (just Kaushik, magic link as cross-device convenience only).
+**Options:**
+- A) Shared backend, magic link per-user (multi-tenant, RLS by `auth.uid()`)
+- B) Bring your own Supabase project
+- C) Single-tenant, just for Kaushik
+**Needed from:** human.
+**Status:** resolved — Option A. One shared Supabase project (hosted by Kaushik), magic-link/Google OAuth sign-in, RLS policies isolate each user's rows by `auth.uid()`. This positions "Dandy Sync" as a real multi-user product tier alongside the free GitHub BYO-sync option from Sprint 12.
+
+---
+
 ### Q6: `stats.js` reads `state.checkmarks` but saved data uses `state.checked`
 **Context:** While fixing the Sprint 10 CRDT regression, found that `getStats()` in `src/lib/stats.js` (line ~35) reads historical week data via `state.checkmarks`, but `getState()`/`saveState()` in `storage.js` store sessions under `state.checked`. This looks like a pre-existing bug from Sprint 8 (Stats Dashboard) — `state.checkmarks` is always `undefined` for real saved weeks, so `checkedCount` and `tagCompletions` are likely always 0 in the historical adherence stats. The `tasks` completion count (line ~52) was fixed as part of this session's CRDT work, but the `checkmarks`/`checked` mismatch is separate and was left untouched to keep this session's scope to Sprint 10-12.
 **Options:**

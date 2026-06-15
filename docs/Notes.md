@@ -21,3 +21,16 @@ Completed the last open Sprint 12 item — PAT storage. Implemented lightweight 
 Also added a show/hide toggle on the PAT field and inline setup instructions (link to GitHub's token-creation page with `repo` scope pre-filled) in the Settings Modal's Cloud Sync section.
 
 `tests/mvw.test.js` used the old plain-boolean `checked`/`tasks` fixture shape and broke after the `.value` fix. Updated the fixture to `{ value, updatedAt }` to match what `getState()` now produces. All 8 tests pass.
+
+Committed as `ac93db9`. Sprint 10, 11, and 12 are now fully complete and checked off in `sprints_v2Sync.md`. Next active sprint is Sprint 13 (Supabase "Dandy Sync" managed backend).
+
+### Sprint 13 (part 1) — SupabaseAdapter, schema, RLS
+Implemented the first task group of Sprint 13: `SupabaseAdapter` (`src/lib/sync/SupabaseAdapter.js`), `supabase/schema.sql`, and added `@supabase/supabase-js` as a dependency.
+
+Design (see resolved Q7 in Questions.md): one shared Supabase project hosted by Kaushik, magic-link/Google OAuth per user, single `user_data` table (`user_id` PK referencing `auth.users`, `data jsonb`, `updated_at`) holding the same blob shape as `exportData()`/`importData()` — mirrors the GitHub adapter's single-file-per-account approach rather than normalizing into multiple tables. RLS policies restrict all access to `auth.uid() = user_id`.
+
+Conflict detection mirrors GitHub's sha/409 approach: `set(payload, expectedUpdatedAt)` does a conditional `update ... where updated_at = expectedUpdatedAt`; zero rows affected throws `'409_CONFLICT'` (same string `SyncEngine.flush()` already checks for from `GitHubAdapter`).
+
+`SupabaseAdapter` also includes `getUser()`, `signInWithMagicLink()`, `signOut()`, and `onAuthStateChange()` — needed because `get()`/`set()` depend on `auth.getUser()`. These aren't wired to any UI yet; that's Sprint 13's remaining "Authentication UI" task group (magic link login portal + sign-out in Settings, plus `SyncEngine` provider switching to actually use `supabaseAdapter`).
+
+**Not done yet, blocks real testing:** no live Supabase project exists. `supabase/schema.sql` needs to be run in a real project's SQL editor, and `getSyncConfig().supabaseUrl`/`supabaseAnonKey` need a UI to be entered (next task group) before this adapter can be exercised end-to-end.

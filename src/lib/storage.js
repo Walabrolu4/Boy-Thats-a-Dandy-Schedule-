@@ -151,10 +151,17 @@ export function getSyncConfig() {
       provider: 'none', // 'none', 'github', 'supabase'
       githubUsername: '',
       githubRepo: '',
-      githubToken: ''
+      githubToken: '',
+      supabaseUrl: '',
+      supabaseAnonKey: ''
     };
   }
-  return { ...data, githubToken: deobfuscateToken(data.githubToken) };
+  return {
+    supabaseUrl: '',
+    supabaseAnonKey: '',
+    ...data,
+    githubToken: deobfuscateToken(data.githubToken)
+  };
 }
 
 export function saveSyncConfig(config) {
