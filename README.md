@@ -2,6 +2,8 @@
 
 A personal weekly learning tracker and habits planner. Plan your sessions, track completions, hit your minimum viable week goals, and write reflections — all completely locally in your browser.
 
+**Live app:** [boy-thats-a-dandy-schedule.pages.dev](https://boy-thats-a-dandy-schedule.pages.dev/)
+
 ## Features
 
 - **Offline-First PWA:** Install it on your phone or desktop. Everything runs locally with zero latency.
