@@ -1,5 +1,6 @@
 import { getSyncConfig, exportData, importData, getWeekKey } from '../storage.js';
 import { githubAdapter } from './GitHubAdapter.js';
+import { supabaseAdapter } from './SupabaseAdapter.js';
 import { mergeState } from './merge.js';
 
 export class SyncEngine {
@@ -18,7 +19,51 @@ export class SyncEngine {
       }
     });
 
-    this.cloudSha = null;
+    this.cloudVersion = null;
+    this.supabaseUser = null;
+    this.unsubscribeAuth = null;
+    this.refreshAuthSubscription();
+  }
+
+  /**
+   * (Re)subscribes to Supabase auth state changes using the current sync config.
+   * Call this whenever the Supabase URL/anon key in the sync config change.
+   */
+  refreshAuthSubscription() {
+    if (this.unsubscribeAuth) {
+      this.unsubscribeAuth();
+      this.unsubscribeAuth = null;
+    }
+    this.unsubscribeAuth = supabaseAdapter.onAuthStateChange(user => {
+      const wasSignedIn = !!this.supabaseUser;
+      this.supabaseUser = user;
+      this.cloudVersion = null;
+
+      if (user && !wasSignedIn) {
+        // Just signed in - pull and merge cloud state for this account
+        this.hydrate();
+      } else if (!user && wasSignedIn) {
+        // Signed out - nothing left to push to this account
+        this.pending = false;
+      }
+      this.emitStatus();
+    });
+  }
+
+  /**
+   * Returns the active storage adapter for the current sync config, or null
+   * if sync isn't configured/ready (e.g. no token, or not signed in).
+   */
+  async getAdapter(config) {
+    if (config.provider === 'github') {
+      return config.githubToken ? githubAdapter : null;
+    }
+    if (config.provider === 'supabase') {
+      if (!config.supabaseUrl || !config.supabaseAnonKey) return null;
+      const user = await supabaseAdapter.getUser();
+      return user ? supabaseAdapter : null;
+    }
+    return null;
   }
 
   onStatusChange(callback) {
@@ -70,8 +115,9 @@ export class SyncEngine {
     if (!this.isOnline || this.syncing || !this.pending) return;
 
     const config = getSyncConfig();
-    if (config.provider !== 'github' || !config.githubToken) {
-      // Simulate network delay for purely local dev
+    const adapter = await this.getAdapter(config);
+    if (!adapter) {
+      // Simulate network delay for purely local dev / not-yet-configured sync
       await new Promise(r => setTimeout(r, 600));
       this.pending = false;
       return;
@@ -82,10 +128,10 @@ export class SyncEngine {
 
     try {
       const payload = exportData();
-      
+
       try {
-        const newSha = await githubAdapter.set(payload, this.cloudSha);
-        this.cloudSha = newSha;
+        const newVersion = await adapter.set(payload, this.cloudVersion);
+        this.cloudVersion = newVersion;
         this.pending = false;
       } catch (e) {
         if (e.message === '409_CONFLICT') {
@@ -109,24 +155,25 @@ export class SyncEngine {
   async hydrate() {
     if (!this.isOnline) return;
     const config = getSyncConfig();
-    if (config.provider !== 'github' || !config.githubToken) return;
+    const adapter = await this.getAdapter(config);
+    if (!adapter) return;
 
     this.syncing = true;
     this.emitStatus();
 
     try {
-      const response = await githubAdapter.get();
+      const response = await adapter.get();
       if (response && response.data) {
-        this.cloudSha = response.sha;
+        this.cloudVersion = response.version;
         const cloudData = response.data;
         const localData = exportData();
-        
+
         // Merge the current week's state specifically using CRDTs
         const weekKey = getWeekKey();
         if (cloudData[weekKey]) {
           cloudData[weekKey] = mergeState(localData[weekKey], cloudData[weekKey]);
         }
-        
+
         // Import everything else (LWW override by cloud)
         importData(cloudData);
         window.dispatchEvent(new CustomEvent('dms-hydrated'));

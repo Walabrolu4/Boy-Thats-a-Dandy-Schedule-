@@ -55,9 +55,25 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 - [x] Design Supabase schema for storing timestamped checkmarks and reviews.
 - [x] Implement Row Level Security (RLS) policies ensuring users can only read/write their own UID data.
 
-### Authentication UI
-- [ ] Implement a "Dandy Sync" login portal in the Settings Modal using Supabase Magic Link auth.
-- [ ] Implement "Sign Out" functionality that gracefully reverts the user back to pure `LocalStorageAdapter`.
+---
+
+## Sprint 13.5 — Account & Profile UI
+**Goal:** Build the sign-in experience and an account panel (display name + uploadable avatar) for Dandy Sync users, and wire `SupabaseAdapter` into the live sync engine.
+
+### Auth
+- [x] Implement magic-link sign-in/sign-up flow (email input → "Send magic link" → handle the auth redirect/session).
+- [x] Implement "Sign Out" that gracefully reverts the user back to pure `LocalStorageAdapter`.
+- [x] Wire `SyncEngine` to use `supabaseAdapter` when `provider === 'supabase'` and the user is signed in.
+
+### Profile Schema & Storage
+- [ ] Create `profiles` table (`user_id` PK references `auth.users`, `display_name`, `avatar_url`, `updated_at`) with RLS scoped to `auth.uid()`.
+- [ ] Create an `avatars` Supabase Storage bucket with RLS policies scoped to `auth.uid()` (path prefixed by user id).
+- [ ] Implement profile get/update and avatar upload/remove (new `ProfileAdapter` or methods on `SupabaseAdapter`).
+
+### Account UI (Settings)
+- [ ] Add an "Account" section to the Settings Modal, alongside Cloud Sync.
+- [ ] Signed-out state: email input + "Send magic link" button + status message.
+- [ ] Signed-in state: editable display name (autosave), avatar upload/preview/remove, sign-out button.
 
 ---
 

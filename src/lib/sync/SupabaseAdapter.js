@@ -53,7 +53,7 @@ export class SupabaseAdapter extends StorageAdapter {
   }
 
   /**
-   * @returns {Promise<{ updatedAt: string, data: Object } | null>}
+   * @returns {Promise<{ version: string, data: Object } | null>}
    */
   async get() {
     const client = this.client;
@@ -74,15 +74,15 @@ export class SupabaseAdapter extends StorageAdapter {
     }
     if (!data) return null;
 
-    return { updatedAt: data.updated_at, data: data.data };
+    return { version: data.updated_at, data: data.data };
   }
 
   /**
    * @param {Object} payload The entire app state tree
-   * @param {string} [expectedUpdatedAt] The `updated_at` value we last read, for optimistic concurrency
+   * @param {string} [version] The `updated_at` value we last read, for optimistic concurrency
    * @returns {Promise<string>} The new `updated_at` value
    */
-  async set(payload, expectedUpdatedAt = null) {
+  async set(payload, version = null) {
     const client = this.client;
     if (!client) throw new Error('Dandy Sync is not configured.');
 
@@ -91,13 +91,13 @@ export class SupabaseAdapter extends StorageAdapter {
 
     const now = new Date().toISOString();
 
-    if (expectedUpdatedAt) {
+    if (version) {
       // Only overwrite if the row hasn't changed since we last read it.
       const { data, error } = await client
         .from('user_data')
         .update({ data: payload, updated_at: now })
         .eq('user_id', user.id)
-        .eq('updated_at', expectedUpdatedAt)
+        .eq('updated_at', version)
         .select('updated_at');
 
       if (error) throw error;

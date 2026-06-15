@@ -40,10 +40,10 @@ export class GitHubAdapter extends StorageAdapter {
       const data = await response.json();
       // data.content is base64 encoded
       const decoded = atob(data.content);
-      
-      // We must return { sha, content } so we can use the sha to update it later
+
+      // We must return the sha (as `version`) so we can use it to update later
       return {
-        sha: data.sha,
+        version: data.sha,
         data: JSON.parse(decoded)
       };
     } catch (e) {
@@ -54,13 +54,13 @@ export class GitHubAdapter extends StorageAdapter {
 
   /**
    * @param {Object} payload The entire app state tree
-   * @param {string} [sha] The previous sha if we know it, to prevent conflicting overwrites
+   * @param {string} [version] The previous sha if we know it, to prevent conflicting overwrites
    */
-  async set(payload, sha = null) {
+  async set(payload, version = null) {
     try {
       // If we don't have a sha, we must fetch the file first to get the current sha
       // Otherwise, the GitHub API will reject the update
-      let currentSha = sha;
+      let currentSha = version;
       if (!currentSha) {
         try {
           const response = await fetch(this.fileUrl, { headers: this.headers });

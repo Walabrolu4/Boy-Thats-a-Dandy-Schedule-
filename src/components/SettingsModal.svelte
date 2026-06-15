@@ -4,6 +4,7 @@
 
   import { getSyncConfig, saveSyncConfig } from '../lib/storage.js';
   import { syncEngine } from '../lib/sync/SyncEngine.js';
+  import { supabaseAdapter } from '../lib/sync/SupabaseAdapter.js';
 
   let { showSettings = $bindable(false) } = $props();
 
@@ -12,11 +13,45 @@
 
   let syncConfig = $state(getSyncConfig());
   let showToken = $state(false);
+  let showSupabaseKey = $state(false);
+
+  let supabaseUser = $state(null);
+  let magicLinkEmail = $state('');
+  let magicLinkStatus = $state('');
+  let authBusy = $state(false);
 
   $effect(() => {
     // Automatically save sync config when it changes
     saveSyncConfig(syncConfig);
+    // Re-subscribe to auth using the (possibly just-changed) Supabase URL/key
+    syncEngine.refreshAuthSubscription();
   });
+
+  $effect(() => {
+    const unsubscribe = supabaseAdapter.onAuthStateChange(user => {
+      supabaseUser = user;
+    });
+    return unsubscribe;
+  });
+
+  async function sendMagicLink() {
+    authBusy = true;
+    magicLinkStatus = '';
+    try {
+      await supabaseAdapter.signInWithMagicLink(magicLinkEmail);
+      magicLinkStatus = 'Check your email for a sign-in link!';
+    } catch (e) {
+      magicLinkStatus = 'Error: ' + e.message;
+    } finally {
+      authBusy = false;
+    }
+  }
+
+  async function signOutDandySync() {
+    await supabaseAdapter.signOut();
+    magicLinkEmail = '';
+    magicLinkStatus = '';
+  }
 
   async function forceSync() {
     await syncEngine.hydrate();
@@ -151,6 +186,44 @@
             </button>
           </div>
           <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
+        {/if}
+      </div>
+
+      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Dandy Sync (Supabase)</h4>
+      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
+        Sign in with a magic link to sync your data across devices using the managed Dandy Sync backend.
+      </p>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 14px;">
+          <input type="checkbox" checked={syncConfig.provider === 'supabase'} onchange={(e) => syncConfig.provider = e.target.checked ? 'supabase' : 'none'} />
+          Enable Dandy Sync
+        </label>
+
+        {#if syncConfig.provider === 'supabase'}
+          <input type="text" class="sync-input" placeholder="Supabase Project URL" bind:value={syncConfig.supabaseUrl} />
+          <div class="token-input-wrap">
+            <input type={showSupabaseKey ? 'text' : 'password'} class="sync-input" placeholder="Supabase Anon Key" bind:value={syncConfig.supabaseAnonKey} />
+            <button type="button" class="token-toggle-btn" onclick={() => showSupabaseKey = !showSupabaseKey} aria-label={showSupabaseKey ? 'Hide key' : 'Show key'} title={showSupabaseKey ? 'Hide key' : 'Show key'}>
+              {showSupabaseKey ? '🙈' : '👁️'}
+            </button>
+          </div>
+
+          {#if syncConfig.supabaseUrl && syncConfig.supabaseAnonKey}
+            {#if supabaseUser}
+              <p style="font-size: 14px; color: var(--text); margin: 0;">Signed in as <strong>{supabaseUser.email}</strong></p>
+              <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
+              <button class="settings-action-btn secondary" onclick={signOutDandySync}>Sign Out</button>
+            {:else}
+              <input type="email" class="sync-input" placeholder="you@example.com" bind:value={magicLinkEmail} />
+              <button class="settings-action-btn primary" onclick={sendMagicLink} disabled={authBusy || !magicLinkEmail}>
+                {authBusy ? 'Sending…' : '✉️ Send Magic Link'}
+              </button>
+              {#if magicLinkStatus}
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">{magicLinkStatus}</p>
+              {/if}
+            {/if}
+          {/if}
         {/if}
       </div>
 

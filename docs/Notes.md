@@ -34,3 +34,17 @@ Conflict detection mirrors GitHub's sha/409 approach: `set(payload, expectedUpda
 `SupabaseAdapter` also includes `getUser()`, `signInWithMagicLink()`, `signOut()`, and `onAuthStateChange()` — needed because `get()`/`set()` depend on `auth.getUser()`. These aren't wired to any UI yet; that's Sprint 13's remaining "Authentication UI" task group (magic link login portal + sign-out in Settings, plus `SyncEngine` provider switching to actually use `supabaseAdapter`).
 
 **Not done yet, blocks real testing:** no live Supabase project exists. `supabase/schema.sql` needs to be run in a real project's SQL editor, and `getSyncConfig().supabaseUrl`/`supabaseAnonKey` need a UI to be entered (next task group) before this adapter can be exercised end-to-end.
+
+### Sprint 13.5 (part 1) — Auth + SyncEngine wiring
+Completed the Auth task group of Sprint 13.5 (profile/avatar UI deferred to part 2, per user request — that's a bigger follow-up sprint).
+
+- Renamed `GitHubAdapter`'s `sha`/`SupabaseAdapter`'s `updatedAt` to a common `version` field on `get()`/`set()` so `SyncEngine` can treat both providers identically (`this.cloudVersion`, `adapter.set(payload, this.cloudVersion)`).
+- `SyncEngine.getAdapter(config)` now picks `githubAdapter` or `supabaseAdapter` based on `config.provider`, returning `null` (no-op sync) if not configured or not signed in — same "simulate delay, clear pending" path as before for GitHub.
+- `SyncEngine.refreshAuthSubscription()` subscribes to `supabaseAdapter.onAuthStateChange`; on sign-in it triggers `hydrate()` (pulls + LWW-merges cloud state), on sign-out it clears `pending`. Called once at construction and again whenever the sync config changes (Settings modal's `$effect`), so it picks up a newly-entered Supabase URL/anon key.
+- Settings modal: new "Dandy Sync (Supabase)" section — enable checkbox, Project URL + Anon Key (with show/hide toggle), then either a magic-link email form (signed out) or "Signed in as <email>" + Force Sync + Sign Out (signed in).
+
+**Test fix:** `tests/touch.test.js` mocks `../src/lib/storage.js` entirely; since `SyncEngine`'s constructor now calls `getSyncConfig()` (via `supabaseAdapter.getClient()`) to set up the auth subscription, the mock needed a `getSyncConfig` export added (`provider: 'none'`) or module load failed. All 8 tests pass.
+
+**Still not done (Sprint 13.5 part 2, separate session):** `profiles` table + RLS, `avatars` storage bucket + RLS, avatar upload/display, display-name editing UI. Also still blocked on a live Supabase project for end-to-end testing — `supabase/schema.sql` needs to be run, and email magic-link auth needs to be enabled in the project's Auth settings.
+
+**Pre-existing, out of scope:** `exportData()`/`importData()` round-trip the entire `syncConfig` (including the GitHub PAT) through cloud sync. If a user signs into Dandy Sync on a second device with a different GitHub PAT configured, hydrating will overwrite it with the first device's PAT. Not introduced by this session, but worth a look if BYO-GitHub-sync and Dandy-Sync are ever used together.
