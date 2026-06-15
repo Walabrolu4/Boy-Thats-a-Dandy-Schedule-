@@ -50,6 +50,7 @@
   }
 </script>
 
+{#if globalStore.weekOffset !== 1}
 <div class="review-card">
   <!-- svelte-ignore a11y_no_static_element_interactions --><!-- svelte-ignore a11y_click_events_have_key_events -->
   <div class="review-toggle" onclick={toggleReview}>
@@ -78,3 +79,4 @@
     <PastReviews />
   </div>
 </div>
+{/if}

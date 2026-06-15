@@ -4,6 +4,13 @@
 
   let tasks = $derived.by(() => {
     globalStore.scheduleVersion; // track dependency
+    // Past weeks show their frozen tasksSnapshot (what existed that week);
+    // this week and next week always reflect the live, editable task list.
+    // Older weeks saved before this snapshot existed have no record of what
+    // tasks existed then, so show none rather than leaking the current list.
+    if (globalStore.weekOffset < 0) {
+      return globalStore.weekState.tasksSnapshot || [];
+    }
     return getTasks();
   });
 

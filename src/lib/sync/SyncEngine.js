@@ -161,6 +161,18 @@ export class SyncEngine {
     this.emitStatus();
 
     try {
+      // Push any local edits still pending before pulling, so a stale cloud
+      // copy doesn't clobber them on import below.
+      if (this.pending) {
+        try {
+          this.cloudVersion = await adapter.set(exportData(), this.cloudVersion);
+          this.pending = false;
+        } catch (e) {
+          if (e.message !== '409_CONFLICT') throw e;
+          // Cloud has newer data than our cached version - fall through to pull+merge.
+        }
+      }
+
       const response = await adapter.get();
       if (response && response.data) {
         this.cloudVersion = response.version;

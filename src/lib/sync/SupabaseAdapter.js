@@ -6,6 +6,12 @@ import { StorageAdapter } from './StorageAdapter.js';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Optional early-access lock: if set, only this email may sign in to Dandy Sync.
+// This is a UI-level convenience only - the real enforcement is a Postgres
+// trigger on auth.users in the Supabase project (see supabase/lock_dandy_sync_email.sql),
+// since the anon key is public in the built app.
+const ALLOWED_EMAIL = import.meta.env.VITE_DANDY_SYNC_ALLOWED_EMAIL;
+
 let cachedClient = null;
 
 function getClient() {
@@ -32,6 +38,9 @@ export class SupabaseAdapter extends StorageAdapter {
   async signInWithMagicLink(email) {
     const client = this.client;
     if (!client) throw new Error('Dandy Sync is not configured.');
+    if (ALLOWED_EMAIL && email.trim().toLowerCase() !== ALLOWED_EMAIL.toLowerCase()) {
+      throw new Error('Dandy Sync is currently limited to the project owner during early access. Use GitHub sync instead, or self-host with your own Supabase project.');
+    }
     const { error } = await client.auth.signInWithOtp({ email });
     if (error) throw error;
   }

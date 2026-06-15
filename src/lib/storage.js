@@ -12,25 +12,39 @@ function pad(n) {
   return String(n).padStart(2, '0');
 }
 
-// Returns the localStorage key for the current week, e.g. 'ls-week-2026-06-06'
-export function getWeekKey() {
+// Returns the Friday anchoring the week at `offset` weeks from the current one
+// (offset 0 = this week, -1 = last week, +1 = next week, etc.)
+function getAnchorFriday(offset = 0) {
   const today = new Date();
   const daysBack = (today.getDay() + 2) % 7; // distance back to most recent Friday
   const friday = new Date(today);
-  friday.setDate(today.getDate() - daysBack);
+  friday.setDate(today.getDate() - daysBack + offset * 7);
+  return friday;
+}
+
+// Returns the localStorage key for the week at `offset` weeks from the current one,
+// e.g. 'ls-week-2026-06-06'
+export function getWeekKey(offset = 0) {
+  const friday = getAnchorFriday(offset);
   return `ls-week-${friday.getFullYear()}-${pad(friday.getMonth() + 1)}-${pad(friday.getDate())}`;
 }
 
 // Returns a human-readable range string, e.g. 'Jun 6 – Jun 12'
-export function getWeekRange() {
-  const today = new Date();
-  const daysBack = (today.getDay() + 2) % 7;
-  const friday = new Date(today);
-  friday.setDate(today.getDate() - daysBack);
+export function getWeekRange(offset = 0) {
+  const friday = getAnchorFriday(offset);
   const thursday = new Date(friday);
   thursday.setDate(friday.getDate() + 6);
   const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   return `${fmt(friday)} – ${fmt(thursday)}`;
+}
+
+// Returns "Last Week" / "This Week" / "Next Week" for offset -1/0/+1,
+// otherwise just the date range.
+export function getWeekLabel(offset = 0) {
+  if (offset === -1) return 'Last Week';
+  if (offset === 0) return 'This Week';
+  if (offset === 1) return 'Next Week';
+  return getWeekRange(offset);
 }
 
 // ── Non-scheduled tasks ──
@@ -90,17 +104,20 @@ function getAllWeekKeys() {
   return keys;
 }
 
-export function getState() {
-  let s = localStoreAdapter.getSync(getWeekKey());
+export function getState(offset = 0) {
+  let s = localStoreAdapter.getSync(getWeekKey(offset));
   if (!s) {
     s = { checked: {}, tasks: {}, review: { q1: '', q2: '', q3: '' } };
   }
   return migrateWeekState(s);
 }
 
-export function saveState(s) {
-  if (!s.scheduleSnapshot) s.scheduleSnapshot = getSchedule();
-  localStoreAdapter.setSync(getWeekKey(), s);
+export function saveState(s, offset = 0) {
+  // Current/future weeks track the live schedule/task lists as they're edited;
+  // past weeks keep whatever snapshot they last had (a frozen historical record).
+  if (offset >= 0 || !s.scheduleSnapshot) s.scheduleSnapshot = getSchedule();
+  if (offset >= 0 || !s.tasksSnapshot) s.tasksSnapshot = getTasks();
+  localStoreAdapter.setSync(getWeekKey(offset), s);
 }
 
 // ── Theme ──

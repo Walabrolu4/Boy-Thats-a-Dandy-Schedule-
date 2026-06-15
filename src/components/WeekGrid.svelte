@@ -1,11 +1,17 @@
 <script>
   import { onMount } from 'svelte';
-  import { getSchedule, saveSchedule, getTagsSync } from '../lib/storage.js';
-  import { globalStore, saveGlobalState, toggleEditMode, incrementScheduleVersion } from '../lib/store.svelte.js';
+  import { getSchedule, saveSchedule, getTagsSync, getWeekRange, getWeekLabel } from '../lib/storage.js';
+  import { globalStore, saveGlobalState, toggleEditMode, incrementScheduleVersion, setWeekOffset, goToThisWeek } from '../lib/store.svelte.js';
 
   let days = $derived.by(() => {
     globalStore.scheduleVersion;
-    return getSchedule();
+    // Past weeks show their frozen scheduleSnapshot (what actually happened that week);
+    // this week and next week always reflect the live, editable schedule template.
+    const schedule = globalStore.weekOffset < 0
+      ? (globalStore.weekState.scheduleSnapshot || getSchedule())
+      : getSchedule();
+    // Display Monday-first, regardless of the underlying Friday-start week storage order.
+    return [...schedule].sort((a, b) => ((a.jsDay + 6) % 7) - ((b.jsDay + 6) % 7));
   });
 
   let tags = $derived.by(() => {
@@ -190,6 +196,29 @@
     saveSchedule(allDays); dragState = null; onScheduleChange();
   }
 
+  // Reset transient per-week UI state - it referenced the previous week's sessions.
+  function resetWeekUiState() {
+    activeAddDay = null;
+    pendingTagId = '';
+    pendingMicro = false;
+    editingSession = null;
+    editingTagId = '';
+    editingMicro = false;
+    dragState = null;
+    reorderMode = null;
+  }
+
+  function navigateWeek(delta) {
+    setWeekOffset(delta);
+    resetWeekUiState();
+  }
+
+  function navigateToThisWeek() {
+    if (globalStore.weekOffset === 0) return;
+    goToThisWeek();
+    resetWeekUiState();
+  }
+
   function scrollToDay(key) {
     const el = document.querySelector(`[data-col="${key}"]`);
     if (el) {
@@ -198,6 +227,18 @@
     }
   }
 </script>
+
+<div class="week-nav">
+  <button class="week-nav-btn" onclick={() => navigateWeek(-1)} aria-label="Previous week">◀</button>
+  <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="week-nav-label {globalStore.weekOffset !== 0 ? 'clickable' : ''}" onclick={navigateToThisWeek} title={globalStore.weekOffset !== 0 ? 'Back to this week' : ''}>
+    <span class="week-nav-title">{getWeekLabel(globalStore.weekOffset)}</span>
+    {#if getWeekLabel(globalStore.weekOffset) !== getWeekRange(globalStore.weekOffset)}
+      <span class="week-nav-range">{getWeekRange(globalStore.weekOffset)}</span>
+    {/if}
+  </div>
+  <button class="week-nav-btn" onclick={() => navigateWeek(1)} disabled={globalStore.weekOffset >= 1} aria-label="Next week">▶</button>
+</div>
 
 <div class="mobile-tabs">
   <button class="tab-chip {currentDayKey === 'today' ? 'active' : ''}" onclick={() => scrollToDay(currentDayKey)}>Today</button>
@@ -209,7 +250,7 @@
 <div class="section-heading">Scheduled</div>
 <div class="week-grid" id="weekGrid">
   {#each days as day}
-    {@const isToday = day.jsDay === todayJsDay}
+    {@const isToday = day.jsDay === todayJsDay && globalStore.weekOffset === 0}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="day-col {isToday ? 'today' : ''} {day.sessions.length === 0 && !globalStore.editMode ? 'empty' : ''}" data-col={day.key}
       ondragover={e => onColDragOver(e, day.key)}

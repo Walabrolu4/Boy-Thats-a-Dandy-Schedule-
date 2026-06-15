@@ -76,4 +76,4 @@ Format:
 - A) Fix now as a quick follow-up (rename `state.checkmarks` → `state.checked` in `stats.js`, verify against real saved week data)
 - B) File as a Sprint 8.5 / backlog bug fix for a dedicated session
 **Needed from:** human — confirm whether historical adherence % currently looks wrong in the Stats Dashboard (would confirm this bug is live) and whether to fix now or later.
-**Status:** open
+**Status:** resolved — Fixed in Sprint 13.6: `stats.js` now reads `state.checked` and matches tag completions on `session.id`. Covered by `tests/stats.test.js`.

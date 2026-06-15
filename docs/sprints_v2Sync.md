@@ -99,6 +99,36 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 
 ---
 
+## Sprint 13.7 — Week Navigation (Plan Ahead)
+**Goal:** Let users navigate back through past weeks and forward into next week (one week ahead, for planning), via back/forward arrows with "Last Week / This Week / Next Week" labels and date ranges. The currently-viewed week is fully editable (checkmarks, tasks, schedule, review where applicable) and saved to its own `ls-week-*` entry.
+
+### Offset-aware storage layer
+- [x] Generalize `getWeekKey()` → `getWeekKey(offset = 0)` and `getWeekRange()` → `getWeekRange(offset = 0)`, shifting the Friday-anchor date by `offset * 7` days (handles month/year rollovers via `Date` arithmetic).
+- [x] Generalize `getState()` → `getState(offset = 0)` and `saveState(s, offset = 0)` to read/write the week at that offset (default empty `{ checked: {}, tasks: {}, review: {...} }` shape if no entry exists yet, same as today).
+- [x] Add `getWeekLabel(offset)`: returns `"Last Week"` / `"This Week"` / `"Next Week"` for `-1/0/+1`, otherwise just the formatted date range (for older weeks reached via repeated back-navigation).
+- [x] Unit tests for `getWeekKey(offset)`/`getWeekRange(offset)`/`getWeekLabel(offset)`, including a month-boundary and year-boundary case. — `tests/weekOffset.test.js`.
+
+### Global store: viewed-week state
+- [x] Add `globalStore.weekOffset` (default `0`), clamped to a max of `+1` (can't plan more than one week ahead); no lower bound (unlimited back-navigation through history).
+- [x] `globalStore.weekState` reflects `getState(weekOffset)`; `saveGlobalState()`/`reloadGlobalState()` updated to read/write via `weekOffset`.
+- [x] New `setWeekOffset(delta)` action in `store.svelte.js`: clamps the new offset, reloads `weekState` for it, and resets any transient per-week UI state (active add/edit forms, reorder/drag state, etc.) so stale references from the previous week don't linger.
+
+### Navigation UI
+- [x] Add a "week navigator" bar above the WeekGrid: `◀  [Label · date range]  ▶`.
+- [x] Disable `▶` when `weekOffset === 1`. Back arrow `◀` always enabled.
+- [x] "Today" highlight/dot on the day columns and the mobile "Today" tab only apply when `weekOffset === 0` (viewing any other week, no day is marked "today").
+- [x] Update `App.svelte`'s header week-range display to reflect the currently-viewed week (via `getWeekRange(weekOffset)`/`getWeekLabel(weekOffset)`), not always "this week".
+
+### Review card & future weeks
+- [x] Hide or disable the end-of-week `ReviewCard` when `weekOffset === 1` (can't meaningfully review a week that hasn't happened yet).
+- [x] Verify checkbox/task toggling for past and next-week views write to the correct `ls-week-*` entry via `saveState(state, weekOffset)`.
+
+### Sync/Stats sanity check
+- [x] Confirm `getAllWeekKeys()`/`exportData()`/`hydrate()` correctly pick up a newly-created next-week entry (should already work since they scan `localStorage` dynamically) — `exportData()` iterates `getAllWeekKeys()` which re-scans `localStorage` each call, so a new `ls-week-*` key created via `saveState(s, 1)` is picked up automatically. No code change needed.
+- [x] Confirm `stats.js`'s "exclude current week from history" logic still uses `getWeekKey(0)` (today's actual current week), independent of whatever week the user is currently viewing. — `stats.js` calls `getWeekKey()` (offset defaults to 0), unaffected by `globalStore.weekOffset`.
+
+---
+
 ## Sprint 14 — Social & Sharing
 **Goal:** Leverage the new cloud capabilities (Supabase/GitHub) to allow users to share their schedules and hold themselves accountable.
 

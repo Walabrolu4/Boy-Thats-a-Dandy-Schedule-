@@ -87,3 +87,39 @@ Completed all four task groups from the post-13.5 audit:
 All 10 Vitest tests pass (`npx vitest run`).
 
 **Still pending from before:** confirm Supabase setup (schema.sql + Auth URL config) and test magic-link sign-in end-to-end; commit the Sprint 13.5 part-1-fix + Sprint 13.6 changes once verified.
+
+### Settings UX revamp + Dandy Sync verification + WeekGrid Monday-first
+Verified the live Supabase setup end-to-end: `schema.sql` is applied (`GET /rest/v1/user_data` returns 200 with the anon key) and email/magic-link auth is enabled (`auth/v1/settings` shows `email: true`). Magic-link sign-in was tested live and works.
+
+While verifying, found that `user_data` had no row after sign-in. Root cause: `SyncEngine.hydrate()` only pulls from the cloud — if no row exists yet it did nothing, and "Force Sync Now" only calls `hydrate()`, never `flush()`. Fixed: `hydrate()` now pushes the local `exportData()` payload via `adapter.set()` to create the initial row when the cloud has none (`src/lib/sync/SyncEngine.js`).
+
+Also did a Settings Modal UX pass (user-requested, ahead of Sprint 13.5 part 2): `src/components/SettingsModal.svelte` now shows a one-line sync status indicator (provider + connection state) under the header, and all sections are collapsible `<details>`/`<summary>` accordions. "Cloud Sync (GitHub)" and "Dandy Sync (Supabase)" were merged into a single "Sync" section with a radio-button provider picker (Off/GitHub/Dandy Sync) showing only the relevant sub-form.
+
+Separately, fixed the WeekGrid day order: `src/components/WeekGrid.svelte` now sorts `days` Monday-first for display (`(jsDay + 6) % 7`), regardless of the underlying Friday-anchored storage order in `data.js`/`ls-schedule`. Only the "today" highlight moves day-to-day; the column order is now a fixed traditional Mon-Sun calendar layout.
+
+Both committed as `c9d7801` (Settings UX + sync fix) — the WeekGrid Monday-first change is still uncommitted as of this note. All 10 Vitest tests pass.
+
+**New sprint added:** Sprint 13.7 — Week Navigation (Plan Ahead), inserted between 13.6 and 14 in `sprints_v2Sync.md`. Lets users navigate back through past weeks and one week forward (for planning), with `◀ [Label · date range] ▶` navigation and offset-aware storage helpers. Not started.
+
+**Next session should:** pick between Sprint 13.5 part 2 (Profile/Account UI - avatars, display name) or Sprint 13.7 (Week Navigation) - present both as options.
+
+### Sprint 13.7 — Week Navigation (Plan Ahead)
+Completed all task groups:
+
+- `storage.js`: `getWeekKey`/`getWeekRange` now take an `offset` (weeks from the real current week, via a shared `getAnchorFriday(offset)` helper); `getState`/`saveState` take the same offset. New `getWeekLabel(offset)` returns "Last Week"/"This Week"/"Next Week" for -1/0/+1, else the date range.
+- `store.svelte.js`: new `globalStore.weekOffset` (default 0), `saveGlobalState`/`reloadGlobalState` read/write via it, new `setWeekOffset(delta)` clamps forward navigation at +1 (unlimited back).
+- `WeekGrid.svelte`: new `◀ [Label · date range] ▶` nav bar; navigating resets transient UI state (add/edit forms, drag/reorder); "today" highlight only shown at `weekOffset === 0`.
+- `App.svelte`: header now shows `{weekLabel} · {weekRange}` for the viewed week.
+- `ReviewCard.svelte`: hidden entirely when `weekOffset === 1` (can't review a week that hasn't happened).
+- No changes needed to `exportData`/`hydrate`/`stats.js` - `getAllWeekKeys()` re-scans localStorage dynamically (picks up new future-week entries), and `stats.js` uses `getWeekKey()` with the default offset 0 (real current week), independent of navigation.
+
+Added `tests/weekOffset.test.js` (Monday-anchor + year-boundary cases for the new offset helpers); updated `tests/touch.test.js`'s storage mock with `getWeekRange`/`getWeekLabel` stubs since `WeekGrid` now calls them at render. All 12 Vitest tests pass.
+
+Added a small follow-up: clicking the center week-nav label (`.week-nav-label`) now calls `navigateToThisWeek()` to jump straight back to "This Week" when viewing a different week (no-op if already on offset 0). New `goToThisWeek()` in `store.svelte.js` resets `weekOffset`/`weekState` and shares the `resetWeekUiState()` cleanup with `navigateWeek()`. Added `.week-nav-label.clickable` hover styling in `app.css`. All 12 Vitest tests still pass.
+
+**Follow-up fixes (same session, still uncommitted):**
+- Fixed duplicate week label (e.g. "May 22 – May 28 · May 22 – May 28") for weeks with no special Last/This/Next label - `App.svelte` and `WeekGrid.svelte`'s nav bar now only show the date range if it differs from the label.
+- **Schedule history correctness**: `storage.js`'s `saveState()` now keeps `scheduleSnapshot` in sync with the live `ls-schedule` template for the current week and next week (`offset >= 0`), but leaves a past week's snapshot frozen once set. `WeekGrid.svelte`'s `days` derived now reads `weekState.scheduleSnapshot` (falling back to the live schedule) when `weekOffset < 0`, so past weeks show what the schedule actually was that week, while this/next week always reflect live edits. "Edit schedule" is now disabled (with a tooltip) when viewing a past week, and `setWeekOffset` auto-exits edit mode when navigating into the past.
+- Moved the sync status dot to the right of the settings cog (was between the title and Stats button) and shrank it (`font-size: 10px`, `min-height/width: 24px`); tooltip on hover unchanged.
+
+**Not committed yet** - awaiting verification.
