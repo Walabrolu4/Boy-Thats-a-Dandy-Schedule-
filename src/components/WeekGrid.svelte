@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { getSchedule, saveSchedule, getTagsSync, getWeekRange, getWeekLabel } from '../lib/storage.js';
+  import { getSchedule, saveSchedule, getTagsSync, getWeekRange, getWeekLabel, hasWeekData } from '../lib/storage.js';
   import { globalStore, saveGlobalState, toggleEditMode, incrementScheduleVersion, setWeekOffset, goToThisWeek } from '../lib/store.svelte.js';
 
   let days = $derived.by(() => {
@@ -238,7 +238,7 @@
 </script>
 
 <div class="week-nav">
-  <button class="week-nav-btn" onclick={() => navigateWeek(-1)} aria-label="Previous week">◀</button>
+  <button class="week-nav-btn" onclick={() => navigateWeek(-1)} disabled={!hasWeekData(globalStore.weekOffset - 1)} aria-label="Previous week">◀</button>
   <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="week-nav-label {globalStore.weekOffset !== 0 ? 'clickable' : ''}" onclick={navigateToThisWeek} title={globalStore.weekOffset !== 0 ? 'Back to this week' : ''}>
     <span class="week-nav-title">{getWeekLabel(globalStore.weekOffset)}</span>
@@ -300,7 +300,7 @@
         {:else}
         <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="session {session.micro?'micro':''} {done ? 'done' : ''} {!globalStore.editMode?'checkable':''} {isReorder?'reorder-mode':''} {isDragging?'dragging':''}"
-            style="{tag ? `color: ${tag.color}; border: 1px solid ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : tag.color+'11'}` : 'border: 1px solid var(--border);'}"
+            style="{tag ? `color: ${tag.color}; border: 1px ${session.micro ? 'dashed' : 'solid'} ${done ? tag.color : tag.color+'40'}; background: ${done ? tag.color+'22' : tag.color+'11'}` : `border: 1px ${session.micro ? 'dashed' : 'solid'} var(--border);`}"
             draggable="true"
             onclick={() => toggle(day.key, session.id)}
             ontouchstart={e => onTouchStart(e, day.key, session.id)}

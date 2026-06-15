@@ -1,4 +1,4 @@
-import { getState, saveState } from './storage.js';
+import { getState, saveState, hasWeekData } from './storage.js';
 import { syncEngine } from './sync/SyncEngine.js';
 
 export const globalStore = $state({
@@ -33,10 +33,12 @@ export function reloadGlobalState() {
 }
 
 // Navigate to a different week (delta: -1 = back, +1 = forward).
-// Capped at one week ahead of the real current week; unbounded going back.
+// Capped at one week ahead of the real current week; going back is allowed
+// only as far as weeks that actually have saved historical data.
 export function setWeekOffset(delta) {
   const next = globalStore.weekOffset + delta;
   if (next > 1) return;
+  if (next < 0 && !hasWeekData(next)) return;
   globalStore.weekOffset = next;
   globalStore.weekState = getState(next);
   // The schedule can't be edited while viewing a past week (it shows a frozen snapshot).

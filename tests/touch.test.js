@@ -15,6 +15,7 @@ vi.mock('../src/lib/storage.js', () => {
     getState: () => ({ checked: {} }),
     getWeekRange: () => 'Jun 6 – Jun 12',
     getWeekLabel: () => 'This Week',
+    hasWeekData: () => true,
     getTagsSync: () => [
       { id: 'exer', label: 'Exercise', color: '#3DD68C' },
       { id: 'draw', label: 'Drawing', color: '#FFD700' }

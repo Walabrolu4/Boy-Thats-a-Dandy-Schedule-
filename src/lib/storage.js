@@ -47,6 +47,14 @@ export function getWeekLabel(offset = 0) {
   return getWeekRange(offset);
 }
 
+// Whether a week has a saved `ls-week-*` entry (i.e. real historical data).
+// The current week (offset 0) always counts as existing, even before its
+// first save.
+export function hasWeekData(offset = 0) {
+  if (offset === 0) return true;
+  return localStoreAdapter.getSync(getWeekKey(offset)) !== null;
+}
+
 // ── Non-scheduled tasks ──
 
 export function getTasks() {

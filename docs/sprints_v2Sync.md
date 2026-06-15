@@ -129,6 +129,41 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 
 ---
 
+## Sprint 13.8 — Habit Onboarding Wizard
+**Goal:** Give first-time users a guided setup that replaces the generic `DEFAULT_TAGS`/`DEFAULT_DAYS` sample schedule with one built from *their* habits, so the app feels personalized from session one instead of asking them to hand-edit a stranger's routine.
+
+### Onboarding flow & first-run detection
+- [ ] Add an `ls-onboarded` flag (localStorage, via `localStoreAdapter`). On `App.svelte` mount, after `syncEngine.hydrate()` resolves, show `OnboardingWizard` if the flag isn't set (covers brand-new users and users who pull a fresh cloud account with no flag yet).
+- [ ] Add a "Re-run setup" entry in `SettingsModal` (Data section) that re-opens the wizard on demand — useful if someone wants to regenerate their week after a big life change. Re-running always asks for confirmation since it overwrites `ls-schedule`/`ls-tags`/`ls-tasks` (same archive-old-schedule pattern as `SeasonalWizard`).
+- [ ] Wizard is a full-screen modal (reuse `SeasonalWizard`'s modal-overlay styling) that can't be dismissed by clicking outside on first run (must complete or explicitly skip) — skipping just sets `ls-onboarded` and keeps the existing defaults, for users who want to start from the sample schedule.
+
+### Step 1 — Habit list builder
+- [ ] Repeating row UI: habit name (free text), **frequency** (`Every day` or `1`–`6` times/week — a single control, e.g. a select with "Every day" as one of the options rather than a separate toggle), and **preferred time** (`Morning` / `Afternoon` / `Evening` / `Night`).
+- [ ] "Add habit" button appends a new row; each row has a remove (×) button. Start with one empty row.
+- [ ] Minimal validation: skip rows with an empty name when generating; require at least one named habit to proceed (or allow "Skip setup").
+
+### Step 2 — Review & generate
+- [ ] Show a per-day preview of the generated week (reuse the `preview-schedule` list style from `SeasonalWizard`) so users see roughly what they're getting before committing.
+- [ ] "Back" returns to Step 1 with entries preserved; "Create my week" runs the generator and finishes onboarding.
+
+### Generation logic (new `src/lib/onboarding.js`)
+- [ ] `buildTagsFromHabits(habits)`: one tag per habit, `id` slugified from the name (deduped if collisions), `color` assigned round-robin from a small fixed palette, `mvwTarget`/`mvwOutOf` derived from frequency:
+  - "Every day" → `mvwTarget: 7, mvwOutOf: 7`.
+  - `N` times/week where `N > 1` → `mvwTarget: N, mvwOutOf: 7`.
+  - `N === 1` → `mvwTarget: 1` (no `mvwOutOf`, matching the existing single-session tags like `prog`/`draw`).
+- [ ] `buildScheduleFromHabits(habits)`: starting from the 7 day-shells (`fri`...`thu`, same keys/labels/`jsDay` as `DEFAULT_DAYS`, all `sessions: []`):
+  - For each habit, spread its `frequency` occurrences across the 7 days as evenly as possible (e.g. `step = 7 / frequency`, place on days `floor(i * step)` for `i in 0..frequency-1`) so e.g. a 3x/week habit lands roughly Mon/Wed/Fri-equivalent rather than three days in a row.
+  - Each placed occurrence becomes a session `{ id: '<habitId>-<n>', label: habitName, tagId: habitId, note: '' }` (numbered only when `frequency > 1`, to mirror `prog1`/`prog2`).
+  - **Within each day**, sort sessions by preferred time using the order Morning → Afternoon → Evening → Night, so a habit marked "Stretch, every day, Morning" is always placed at the top of each day it appears on, and a "Meditate, every day, Night" habit sinks to the bottom — mirroring the existing `DEFAULT_DAYS` convention (stretch first, meditate last).
+- [ ] `buildTasksFromHabits(habits)`: currently no habits map to unscheduled tasks (everything becomes a scheduled session) — leave `DEFAULT_TASKS`-style entries empty/untouched unless a later sprint adds a "no fixed time" frequency option.
+- [ ] On "Create my week": `saveTags(tags)`, `saveSchedule(schedule)`, then call `saveState`/`incrementScheduleVersion()` as needed so `scheduleSnapshot`/`tasksSnapshot` for the current week reflect the new schedule immediately (don't leave stale snapshots from the old default). Set `ls-onboarded = true`.
+
+### Tests
+- [ ] Unit tests for `buildTagsFromHabits`/`buildScheduleFromHabits` covering: "every day" frequency, 1x/week, 3x/week even-distribution, and time-of-day ordering within a day (morning habit sorts before night habit on a day they share).
+- [ ] Smoke test that completing the wizard sets `ls-onboarded` and that `App.svelte` doesn't show the wizard again on next mount.
+
+---
+
 ## Sprint 14 — Social & Sharing
 **Goal:** Leverage the new cloud capabilities (Supabase/GitHub) to allow users to share their schedules and hold themselves accountable.
 
