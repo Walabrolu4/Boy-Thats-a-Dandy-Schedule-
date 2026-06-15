@@ -19,6 +19,19 @@
   let magicLinkStatus = $state('');
   let authBusy = $state(false);
 
+  let syncStatusLabel = $derived.by(() => {
+    if (syncConfig.provider === 'github') {
+      const configured = syncConfig.githubUsername && syncConfig.githubRepo && syncConfig.githubToken;
+      return configured
+        ? `🐙 GitHub Sync — connected (${syncConfig.githubUsername}/${syncConfig.githubRepo})`
+        : '🐙 GitHub Sync — not configured';
+    }
+    if (syncConfig.provider === 'supabase') {
+      return supabaseUser ? `✨ Dandy Sync — signed in as ${supabaseUser.email}` : '✨ Dandy Sync — signed out';
+    }
+    return '🔘 Sync is off';
+  });
+
   $effect(() => {
     // Automatically save sync config when it changes
     saveSyncConfig(syncConfig);
@@ -152,106 +165,122 @@
   <div class="modal-overlay" onclick={closeSettings}>
     <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-content" onclick={e => e.stopPropagation()}>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div class="modal-header">
         <h3 style="margin: 0; font-size: 20px; color: var(--text);">Settings & Data</h3>
         <button class="close-btn" onclick={closeSettings} aria-label="Close settings" style="background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer;">×</button>
       </div>
 
-      <h4 style="margin: 0 0 12px 0; font-size: 15px; color: var(--text);">App Theme</h4>
-      <ThemePicker />
+      <div class="sync-status-line">{syncStatusLabel}</div>
 
-      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Cloud Sync (GitHub)</h4>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
-        Bring Your Own Sync! Enter a private GitHub repository and a Personal Access Token to sync your data across devices for free.
-      </p>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <label style="display: flex; gap: 8px; align-items: center; font-size: 14px;">
-          <input type="checkbox" checked={syncConfig.provider === 'github'} onchange={(e) => syncConfig.provider = e.target.checked ? 'github' : 'none'} />
-          Enable GitHub Sync
-        </label>
+      <details class="settings-section" open>
+        <summary>App Theme</summary>
+        <div class="section-body">
+          <ThemePicker />
+        </div>
+      </details>
 
-        {#if syncConfig.provider === 'github'}
-          <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">
-            1. Create a private GitHub repository (any name) to hold your synced data.<br />
-            2. <a href="https://github.com/settings/tokens/new?description=Dandy+Routine+Sync&scopes=repo" target="_blank" rel="noopener noreferrer">Create a Personal Access Token</a> with the <code>repo</code> scope, then paste it below.
-          </p>
-          <input type="text" class="sync-input" placeholder="GitHub Username (e.g. octocat)" bind:value={syncConfig.githubUsername} />
-          <input type="text" class="sync-input" placeholder="Repository Name (e.g. my-dandy-sync)" bind:value={syncConfig.githubRepo} />
-          <div class="token-input-wrap">
-            <input type={showToken ? 'text' : 'password'} class="sync-input" placeholder="Personal Access Token (classic or fine-grained)" bind:value={syncConfig.githubToken} />
-            <button type="button" class="token-toggle-btn" onclick={() => showToken = !showToken} aria-label={showToken ? 'Hide token' : 'Show token'} title={showToken ? 'Hide token' : 'Show token'}>
-              {showToken ? '🙈' : '👁️'}
-            </button>
+      <details class="settings-section" open={syncConfig.provider !== 'none'}>
+        <summary>Sync</summary>
+        <div class="section-body">
+          <div class="provider-options">
+            <label class="provider-option">
+              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'none'} onchange={() => syncConfig.provider = 'none'} />
+              Off
+            </label>
+            <label class="provider-option">
+              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'github'} onchange={() => syncConfig.provider = 'github'} />
+              GitHub Sync (Bring Your Own)
+            </label>
+            <label class="provider-option">
+              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'supabase'} onchange={() => syncConfig.provider = 'supabase'} />
+              Dandy Sync (Managed)
+            </label>
           </div>
-          <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
-        {/if}
-      </div>
 
-      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Dandy Sync (Supabase)</h4>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
-        Sign in with a magic link to sync your data across devices using the managed Dandy Sync backend.
-      </p>
+          {#if syncConfig.provider === 'none'}
+            <p class="section-hint">Pick a sync option above to keep your data in sync across devices.</p>
+          {/if}
 
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <label style="display: flex; gap: 8px; align-items: center; font-size: 14px;">
-          <input type="checkbox" checked={syncConfig.provider === 'supabase'} onchange={(e) => syncConfig.provider = e.target.checked ? 'supabase' : 'none'} />
-          Enable Dandy Sync
-        </label>
-
-        {#if syncConfig.provider === 'supabase'}
-          {#if supabaseUser}
-            <p style="font-size: 14px; color: var(--text); margin: 0;">Signed in as <strong>{supabaseUser.email}</strong></p>
+          {#if syncConfig.provider === 'github'}
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+              Enter a private GitHub repository and a Personal Access Token to sync your data across devices for free.<br />
+              1. Create a private GitHub repository (any name) to hold your synced data.<br />
+              2. <a href="https://github.com/settings/tokens/new?description=Dandy+Routine+Sync&scopes=repo" target="_blank" rel="noopener noreferrer">Create a Personal Access Token</a> with the <code>repo</code> scope, then paste it below.
+            </p>
+            <input type="text" class="sync-input" placeholder="GitHub Username (e.g. octocat)" bind:value={syncConfig.githubUsername} />
+            <input type="text" class="sync-input" placeholder="Repository Name (e.g. my-dandy-sync)" bind:value={syncConfig.githubRepo} />
+            <div class="token-input-wrap">
+              <input type={showToken ? 'text' : 'password'} class="sync-input" placeholder="Personal Access Token (classic or fine-grained)" bind:value={syncConfig.githubToken} />
+              <button type="button" class="token-toggle-btn" onclick={() => showToken = !showToken} aria-label={showToken ? 'Hide token' : 'Show token'} title={showToken ? 'Hide token' : 'Show token'}>
+                {showToken ? '🙈' : '👁️'}
+              </button>
+            </div>
             <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
-            <button class="settings-action-btn secondary" onclick={signOutDandySync}>Sign Out</button>
-          {:else}
-            <input type="email" class="sync-input" placeholder="you@example.com" bind:value={magicLinkEmail} />
-            <button class="settings-action-btn primary" onclick={sendMagicLink} disabled={authBusy || !magicLinkEmail}>
-              {authBusy ? 'Sending…' : '✉️ Send Magic Link'}
-            </button>
-            {#if magicLinkStatus}
-              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">{magicLinkStatus}</p>
+          {/if}
+
+          {#if syncConfig.provider === 'supabase'}
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5;">
+              Sign in with a magic link to sync your data across devices using the managed Dandy Sync backend.
+            </p>
+            {#if supabaseUser}
+              <p style="font-size: 14px; color: var(--text); margin: 0;">Signed in as <strong>{supabaseUser.email}</strong></p>
+              <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
+              <button class="settings-action-btn secondary" onclick={signOutDandySync}>Sign Out</button>
+            {:else}
+              <input type="email" class="sync-input" placeholder="you@example.com" bind:value={magicLinkEmail} />
+              <button class="settings-action-btn primary" onclick={sendMagicLink} disabled={authBusy || !magicLinkEmail}>
+                {authBusy ? 'Sending…' : '✉️ Send Magic Link'}
+              </button>
+              {#if magicLinkStatus}
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">{magicLinkStatus}</p>
+              {/if}
             {/if}
           {/if}
-        {/if}
-      </div>
+        </div>
+      </details>
 
-      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Data Backup & Restore</h4>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
-        Export your entire schedule, goals, tasks, and history to a single JSON file. You can import this file later to completely restore your setup.
-      </p>
+      <details class="settings-section">
+        <summary>Data Backup & Restore</summary>
+        <div class="section-body">
+          <p class="section-hint">
+            Export your entire schedule, goals, tasks, and history to a single JSON file. You can import this file later to completely restore your setup.
+          </p>
+          <button class="settings-action-btn primary" onclick={handleExport}>
+            📥 Export Data
+          </button>
+          <button class="settings-action-btn secondary" onclick={triggerImport}>
+            📤 Import Data
+          </button>
+          <input type="file" accept=".json" bind:this={fileInput} onchange={handleImport} style="display: none;" />
+        </div>
+      </details>
 
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <button class="settings-action-btn primary" onclick={handleExport}>
-          📥 Export Data
-        </button>
-        
-        <button class="settings-action-btn secondary" onclick={triggerImport}>
-          📤 Import Data
-        </button>
-        <input type="file" accept=".json" bind:this={fileInput} onchange={handleImport} style="display: none;" />
-      </div>
+      <details class="settings-section">
+        <summary>Schedule Advanced</summary>
+        <div class="section-body">
+          <p class="section-hint">
+            Automatically pack your existing scheduled sessions into specific available days when the season changes.
+          </p>
+          <button class="settings-action-btn secondary" onclick={() => showSeasonalWizard = true}>
+            🍂 Seasonal Re-mapping
+          </button>
+        </div>
+      </details>
 
-      <h4 style="margin: 24px 0 8px 0; font-size: 15px; color: var(--text);">Schedule Advanced</h4>
-      <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 16px 0; line-height: 1.5;">
-        Automatically pack your existing scheduled sessions into specific available days when the season changes.
-      </p>
-      <button class="settings-action-btn secondary" onclick={() => showSeasonalWizard = true}>
-        🍂 Seasonal Re-mapping
-      </button>
-
-      <h4 style="margin: 32px 0 8px 0; font-size: 15px; color: var(--text);">Developer Tools</h4>
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px;" onclick={devPopulate}>
-          Inject Mock Past Reviews
-        </button>
-        <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px;" onclick={devMockStats}>
-          Inject Mock Stats
-        </button>
-        <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px; border-color: #ff5555; color: #ff5555;" onclick={devReset}>
-          Factory Reset App Data
-        </button>
-      </div>
+      <details class="settings-section">
+        <summary>Developer Tools</summary>
+        <div class="section-body">
+          <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px;" onclick={devPopulate}>
+            Inject Mock Past Reviews
+          </button>
+          <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px;" onclick={devMockStats}>
+            Inject Mock Stats
+          </button>
+          <button class="settings-action-btn secondary" style="font-size: 13px; padding: 8px; border-color: #ff5555; color: #ff5555;" onclick={devReset}>
+            Factory Reset App Data
+          </button>
+        </div>
+      </details>
     </div>
   </div>
 {/if}
@@ -259,6 +288,87 @@
 <SeasonalWizard bind:showWizard={showSeasonalWizard} onComplete={() => { showSeasonalWizard = false; window.location.reload(); }} />
 
 <style>
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .sync-status-line {
+    font-size: 13px;
+    color: var(--text-muted);
+    background: var(--surface-hover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 16px;
+  }
+
+  .settings-section {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .settings-section > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 12px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .settings-section > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-section > summary::after {
+    content: '▾';
+    color: var(--text-muted);
+    transition: transform 0.2s ease;
+  }
+
+  .settings-section[open] > summary::after {
+    transform: rotate(180deg);
+  }
+
+  .settings-section > summary:hover {
+    background: var(--surface-hover);
+  }
+
+  .section-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 14px 16px 14px;
+  }
+
+  .section-hint {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .provider-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .provider-option {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 14px;
+  }
+
   .sync-input {
     width: 100%;
     padding: 10px;

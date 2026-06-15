@@ -179,6 +179,9 @@ export class SyncEngine {
         // Import everything else (LWW override by cloud)
         importData(cloudData);
         window.dispatchEvent(new CustomEvent('dms-hydrated'));
+      } else {
+        // No cloud row yet for this account - push local state to create it.
+        this.cloudVersion = await adapter.set(exportData(), null);
       }
     } catch (e) {
       console.error('Hydration failed:', e);
