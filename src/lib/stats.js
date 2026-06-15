@@ -32,13 +32,16 @@ export function getStats() {
         let checkedCount = 0;
         let tagCompletions = {}; // tagId -> count
 
-        if (state && state.checkmarks) {
-          for (const [id, isDone] of Object.entries(state.checkmarks)) {
+        if (state && state.checked) {
+          for (const [id, entry] of Object.entries(state.checked)) {
+            const isDone = typeof entry === 'boolean' ? entry : entry?.value;
             if (isDone) {
               checkedCount++;
               // Use weekSchedule for accurate historical tag lookup
-              const [dayKey, timeKey] = id.split('-');
-              const sessionObj = weekSchedule.find(d => d.key === dayKey)?.sessions.find(s => s.time === timeKey);
+              const sepIdx = id.indexOf('-');
+              const dayKey = id.slice(0, sepIdx);
+              const sessionId = id.slice(sepIdx + 1);
+              const sessionObj = weekSchedule.find(d => d.key === dayKey)?.sessions.find(s => s.id === sessionId);
               if (sessionObj && sessionObj.tagId) {
                 tagCompletions[sessionObj.tagId] = (tagCompletions[sessionObj.tagId] || 0) + 1;
               }
@@ -89,19 +92,19 @@ export function generateDummyStats() {
   let availableSlots = [];
   for (const d of schedule) {
     for (const s of d.sessions) {
-      availableSlots.push(`${d.key}-${s.time}`);
+      availableSlots.push(`${d.key}-${s.id}`);
     }
   }
 
   if (availableSlots.length === 0) return;
 
   for (const item of dummyKeys) {
-    const state = { checkmarks: {}, tasks: {}, review: {}, scheduleSnapshot: schedule };
+    const state = { checked: {}, tasks: {}, review: {}, scheduleSnapshot: schedule };
     // Shuffle available slots to avoid infinite loops
     let shuffled = [...availableSlots].sort(() => 0.5 - Math.random());
     let toFill = Math.min(item.checks, shuffled.length);
     for (let i = 0; i < toFill; i++) {
-      state.checkmarks[shuffled[i]] = true;
+      state.checked[shuffled[i]] = { value: true, updatedAt: Date.now() };
     }
     localStorage.setItem(item.key, JSON.stringify(state));
   }

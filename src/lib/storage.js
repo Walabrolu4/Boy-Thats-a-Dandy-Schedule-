@@ -59,18 +59,16 @@ export function saveSchedule(days) {
 
 // ── Week state (checkmarks, tasks, review) ──
 
-export function getState() {
-  let s = localStoreAdapter.getSync(getWeekKey());
-  if (!s) {
-    s = { checked: {}, tasks: {}, review: { q1: '', q2: '', q3: '' } };
-  } else {
-    if (!s.tasks) {
-      s.tasks = s.reading ? { reading: true } : {};
-      delete s.reading;
-    }
+// CRDT Migration: convert flat boolean flags to { value, updatedAt } objects.
+// Applies to any week's state, not just the current week, so historical
+// weeks pulled in for export/sync are also normalized.
+function migrateWeekState(s) {
+  if (!s.tasks) {
+    s.tasks = s.reading ? { reading: true } : {};
+    delete s.reading;
   }
+  if (!s.checked) s.checked = {};
 
-  // CRDT Migration: convert flat boolean flags to { value, updatedAt } objects
   const now = Date.now();
   for (const [key, val] of Object.entries(s.checked)) {
     if (typeof val === 'boolean') s.checked[key] = { value: val, updatedAt: now };
@@ -80,6 +78,24 @@ export function getState() {
   }
 
   return s;
+}
+
+// Returns every 'ls-week-*' key currently in localStorage.
+function getAllWeekKeys() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('ls-week-')) keys.push(key);
+  }
+  return keys;
+}
+
+export function getState() {
+  let s = localStoreAdapter.getSync(getWeekKey());
+  if (!s) {
+    s = { checked: {}, tasks: {}, review: { q1: '', q2: '', q3: '' } };
+  }
+  return migrateWeekState(s);
 }
 
 export function saveState(s) {
@@ -151,14 +167,10 @@ export function getSyncConfig() {
       provider: 'none', // 'none', 'github', 'supabase'
       githubUsername: '',
       githubRepo: '',
-      githubToken: '',
-      supabaseUrl: '',
-      supabaseAnonKey: ''
+      githubToken: ''
     };
   }
   return {
-    supabaseUrl: '',
-    supabaseAnonKey: '',
     ...data,
     githubToken: deobfuscateToken(data.githubToken)
   };
@@ -173,15 +185,25 @@ export function saveSyncConfig(config) {
 
 // ── Full State Dump / Hydration ──
 
+// Note: `syncConfig` is intentionally NOT included here. Sync provider settings
+// (GitHub username/repo/PAT, Dandy Sync enable flag) are per-device configuration,
+// not data to sync - including it would round-trip a plaintext GitHub PAT through
+// whichever cloud backend is configured, and could clobber one device's GitHub
+// settings with another's.
 export function exportData() {
-  return {
+  const payload = {
     tags: getTagsSync(),
     tasks: getTasks(),
     schedule: getSchedule(),
-    [getWeekKey()]: getState(),
-    theme: getTheme(),
-    syncConfig: getSyncConfig()
+    theme: getTheme()
   };
+
+  const currentWeekKey = getWeekKey();
+  for (const key of getAllWeekKeys()) {
+    payload[key] = key === currentWeekKey ? getState() : migrateWeekState(localStoreAdapter.getSync(key));
+  }
+
+  return payload;
 }
 
 export function importData(payload) {
@@ -190,12 +212,14 @@ export function importData(payload) {
   if (payload.tasks) saveTasks(payload.tasks);
   if (payload.schedule) saveSchedule(payload.schedule);
   if (payload.theme) saveTheme(payload.theme);
-  if (payload.syncConfig) saveSyncConfig(payload.syncConfig);
-  
-  // The week key might be dynamic in the payload, but we assume it contains the current week key
-  const weekKey = getWeekKey();
-  if (payload[weekKey]) {
-    // Only import the current week's state if it's in the payload, otherwise it's fine.
-    saveState(payload[weekKey]);
+
+  const currentWeekKey = getWeekKey();
+  for (const [key, value] of Object.entries(payload)) {
+    if (!key.startsWith('ls-week-') || !value) continue;
+    if (key === currentWeekKey) {
+      saveState(value);
+    } else {
+      localStoreAdapter.setSync(key, value);
+    }
   }
 }

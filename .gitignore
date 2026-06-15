@@ -19,3 +19,7 @@ Thumbs.db
 # Node / Vite
 node_modules/
 dist/
+
+# Environment variables (Dandy Sync Supabase project credentials)
+.env
+secrets.md

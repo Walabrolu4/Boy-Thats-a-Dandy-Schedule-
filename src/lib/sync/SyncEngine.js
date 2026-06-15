@@ -1,4 +1,4 @@
-import { getSyncConfig, exportData, importData, getWeekKey } from '../storage.js';
+import { getSyncConfig, exportData, importData } from '../storage.js';
 import { githubAdapter } from './GitHubAdapter.js';
 import { supabaseAdapter } from './SupabaseAdapter.js';
 import { mergeState } from './merge.js';
@@ -59,7 +59,6 @@ export class SyncEngine {
       return config.githubToken ? githubAdapter : null;
     }
     if (config.provider === 'supabase') {
-      if (!config.supabaseUrl || !config.supabaseAnonKey) return null;
       const user = await supabaseAdapter.getUser();
       return user ? supabaseAdapter : null;
     }
@@ -168,9 +167,12 @@ export class SyncEngine {
         const cloudData = response.data;
         const localData = exportData();
 
-        // Merge the current week's state specifically using CRDTs
-        const weekKey = getWeekKey();
-        if (cloudData[weekKey]) {
+        // Merge every week present on either side using CRDTs
+        const weekKeys = new Set([
+          ...Object.keys(localData).filter(k => k.startsWith('ls-week-')),
+          ...Object.keys(cloudData).filter(k => k.startsWith('ls-week-'))
+        ]);
+        for (const weekKey of weekKeys) {
           cloudData[weekKey] = mergeState(localData[weekKey], cloudData[weekKey]);
         }
 

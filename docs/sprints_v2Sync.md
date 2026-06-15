@@ -77,6 +77,28 @@ This document outlines the v2 roadmap for transforming "Now That's a Dandy Routi
 
 ---
 
+## Sprint 13.6 — Sync Correctness & History
+**Goal:** Fix gaps found in the post-13.5 audit so Dandy Sync and the Stats Dashboard are trustworthy before building Sprint 14 (Social & Sharing) on top of them.
+
+### Full history sync
+- [x] Extend `exportData()`/`importData()` (or add a dedicated path) to include all `ls-week-*` entries, not just the current week, so historical reviews/stats sync across devices.
+- [x] Apply `mergeState()`/LWW merging per-week on hydrate, not just for the current week.
+- [x] Consider payload size/perf implications of syncing full history every flush (e.g. only sync weeks changed since last sync, or a separate table/row-per-week in Supabase). — Decided to defer: fine at personal scale, full-history-per-flush is acceptable for now; revisit if payload size becomes a problem.
+
+### Stats Dashboard bug fixes (Q6)
+- [x] Fix `stats.js` to read `state.checked` instead of the nonexistent `state.checkmarks` for historical adherence counts.
+- [x] Fix the tag-completion lookup to match on `session.id` instead of the nonexistent `session.time`.
+- [x] Update `generateDummyStats()` to write `checked` (matching real data shape) so dev mock stats don't mask real bugs.
+- [x] Verify against real saved week data that adherence % and tag completions are no longer always 0. — Covered by new `tests/stats.test.js`.
+
+### Sync config isolation
+- [x] Stop round-tripping the GitHub BYO-sync config (`githubUsername`/`githubRepo`/`githubToken`) through Dandy Sync's cloud payload, so signing into Dandy Sync on a second device doesn't clobber that device's local GitHub config. — `syncConfig` removed from `exportData()`/`importData()` entirely; sync provider settings are now purely per-device.
+
+### Docs
+- [x] Update `docs/Architecture.md` to reflect the current local-first + optional cloud-sync (GitHub/Supabase) model — it currently says "No Auth Required" and describes a pure-localStorage approach, which predates Sprints 12-13.
+
+---
+
 ## Sprint 14 — Social & Sharing
 **Goal:** Leverage the new cloud capabilities (Supabase/GitHub) to allow users to share their schedules and hold themselves accountable.
 

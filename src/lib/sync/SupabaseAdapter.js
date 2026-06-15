@@ -1,18 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { StorageAdapter } from './StorageAdapter.js';
-import { getSyncConfig } from '../storage.js';
+
+// Dandy Sync is a single managed backend shared by all users - the project
+// URL and publishable anon key are baked in at build time, not user-configured.
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let cachedClient = null;
-let cachedConfigKey = null;
 
 function getClient() {
-  const { supabaseUrl, supabaseAnonKey } = getSyncConfig();
-  if (!supabaseUrl || !supabaseAnonKey) return null;
-
-  const configKey = `${supabaseUrl}::${supabaseAnonKey}`;
-  if (!cachedClient || cachedConfigKey !== configKey) {
-    cachedClient = createClient(supabaseUrl, supabaseAnonKey);
-    cachedConfigKey = configKey;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  if (!cachedClient) {
+    cachedClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
   return cachedClient;
 }

@@ -13,7 +13,6 @@
 
   let syncConfig = $state(getSyncConfig());
   let showToken = $state(false);
-  let showSupabaseKey = $state(false);
 
   let supabaseUser = $state(null);
   let magicLinkEmail = $state('');
@@ -201,27 +200,17 @@
         </label>
 
         {#if syncConfig.provider === 'supabase'}
-          <input type="text" class="sync-input" placeholder="Supabase Project URL" bind:value={syncConfig.supabaseUrl} />
-          <div class="token-input-wrap">
-            <input type={showSupabaseKey ? 'text' : 'password'} class="sync-input" placeholder="Supabase Anon Key" bind:value={syncConfig.supabaseAnonKey} />
-            <button type="button" class="token-toggle-btn" onclick={() => showSupabaseKey = !showSupabaseKey} aria-label={showSupabaseKey ? 'Hide key' : 'Show key'} title={showSupabaseKey ? 'Hide key' : 'Show key'}>
-              {showSupabaseKey ? '🙈' : '👁️'}
+          {#if supabaseUser}
+            <p style="font-size: 14px; color: var(--text); margin: 0;">Signed in as <strong>{supabaseUser.email}</strong></p>
+            <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
+            <button class="settings-action-btn secondary" onclick={signOutDandySync}>Sign Out</button>
+          {:else}
+            <input type="email" class="sync-input" placeholder="you@example.com" bind:value={magicLinkEmail} />
+            <button class="settings-action-btn primary" onclick={sendMagicLink} disabled={authBusy || !magicLinkEmail}>
+              {authBusy ? 'Sending…' : '✉️ Send Magic Link'}
             </button>
-          </div>
-
-          {#if syncConfig.supabaseUrl && syncConfig.supabaseAnonKey}
-            {#if supabaseUser}
-              <p style="font-size: 14px; color: var(--text); margin: 0;">Signed in as <strong>{supabaseUser.email}</strong></p>
-              <button class="settings-action-btn primary" onclick={forceSync}>🔄 Force Sync Now</button>
-              <button class="settings-action-btn secondary" onclick={signOutDandySync}>Sign Out</button>
-            {:else}
-              <input type="email" class="sync-input" placeholder="you@example.com" bind:value={magicLinkEmail} />
-              <button class="settings-action-btn primary" onclick={sendMagicLink} disabled={authBusy || !magicLinkEmail}>
-                {authBusy ? 'Sending…' : '✉️ Send Magic Link'}
-              </button>
-              {#if magicLinkStatus}
-                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">{magicLinkStatus}</p>
-              {/if}
+            {#if magicLinkStatus}
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">{magicLinkStatus}</p>
             {/if}
           {/if}
         {/if}

@@ -48,3 +48,42 @@ Completed the Auth task group of Sprint 13.5 (profile/avatar UI deferred to part
 **Still not done (Sprint 13.5 part 2, separate session):** `profiles` table + RLS, `avatars` storage bucket + RLS, avatar upload/display, display-name editing UI. Also still blocked on a live Supabase project for end-to-end testing — `supabase/schema.sql` needs to be run, and email magic-link auth needs to be enabled in the project's Auth settings.
 
 **Pre-existing, out of scope:** `exportData()`/`importData()` round-trip the entire `syncConfig` (including the GitHub PAT) through cloud sync. If a user signs into Dandy Sync on a second device with a different GitHub PAT configured, hydrating will overwrite it with the first device's PAT. Not introduced by this session, but worth a look if BYO-GitHub-sync and Dandy-Sync are ever used together.
+
+### Sprint 13.5 (part 1 fix) — Hardcode Dandy Sync project credentials
+Corrected a misalignment with the Q7 architecture decision: Dandy Sync is a single managed backend (one shared Supabase project hosted by Kaushik), so the Project URL/Anon Key must NOT be user-entered fields — only "Bring Your Own Sync" (GitHub) is per-user configured.
+
+- Added `.env` (gitignored) with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the live Dandy Sync project (`oqqtwzbkvcugftanhrxz`), plus `.env.example` as a template.
+- `SupabaseAdapter` now reads `import.meta.env.VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` directly (memoized client, no per-config cache key needed).
+- Removed `supabaseUrl`/`supabaseAnonKey` from `getSyncConfig()`/`saveSyncConfig()` in `storage.js`.
+- `SyncEngine.getAdapter()` for `provider === 'supabase'` now just checks `supabaseAdapter.getUser()` - no config field check.
+- Settings modal's "Dandy Sync (Supabase)" section now only shows the enable checkbox + magic-link sign-in/sign-out (no Project URL/Anon Key inputs or show/hide toggle).
+- `tests/touch.test.js` mock simplified to drop the removed fields. All 8 tests pass.
+
+**Still blocked on, for end-to-end testing:** confirm `supabase/schema.sql` has been run against the live project, and confirm Authentication → URL Configuration has Site URL `http://localhost:5173` + matching redirect URL.
+
+### Session pause — status as of this commit
+Stopped here at the user's request, with uncommitted working-tree changes (not yet committed):
+- `.gitignore` — added `.env` and `secrets.md` (both untracked, contain real Supabase credentials/DB password — found an existing untracked `secrets.md` with the DB password during this session, now gitignored so it can't be committed by accident)
+- `.env` (untracked, gitignored) — real `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` for the live Dandy Sync project
+- `.env.example` (new, untracked) — template for the above
+- `src/lib/sync/SupabaseAdapter.js`, `src/lib/storage.js`, `src/lib/sync/SyncEngine.js`, `src/components/SettingsModal.svelte`, `tests/touch.test.js` — the hardcode-credentials fix described above
+
+All 8 Vitest tests pass. Dev server was started, verified responding on `localhost:5173`, then stopped.
+
+**Next session should:**
+1. Confirm `supabase/schema.sql` has been run in the live project's SQL editor and Auth URL Configuration (Site URL/Redirect URLs for `http://localhost:5173`) is set, then test the magic-link sign-in end-to-end.
+2. If that works, commit the hardcode-credentials fix (when user asks for a commit).
+3. Move to Sprint 13.5 part 2 (Profile Schema & Storage + Account UI - avatar upload, display name).
+4. Q6 (`stats.js` `checkmarks`/`checked` mismatch) still open.
+
+### Sprint 13.6 — Sync Correctness & History
+Completed all four task groups from the post-13.5 audit:
+
+- **Full history sync**: `storage.js` now exports/imports every `ls-week-*` entry (not just the current week). Extracted the CRDT-migration logic from `getState()` into a standalone `migrateWeekState()` so historical weeks pulled from `localStorage` get the same `{value, updatedAt}` normalization as the current week. `SyncEngine.hydrate()` now runs `mergeState()` over the union of local/cloud week keys, not just the current week.
+- **Stats Dashboard fixes (Q6, now resolved)**: `getStats()` reads `state.checked` (was `state.checkmarks`, always undefined for real data) and matches tag completions on `session.id` (was `session.time`, a field that doesn't exist on sessions). Also handles legacy boolean `checked` entries alongside the CRDT `{value, updatedAt}` shape. `generateDummyStats()` updated to write the same `checked`/`{value, updatedAt}` shape and `${day.key}-${session.id}` keys as real data, so it no longer masks bugs like this in the future. Added `tests/stats.test.js` covering both shapes.
+- **Sync config isolation**: `syncConfig` removed entirely from `exportData()`/`importData()`. Sync provider settings (`ls-sync-config` — provider, GitHub username/repo/PAT) are now purely per-device and never sent to GitHub or Supabase. This also closes a latent leak where `exportData()` returned the **plaintext** (deobfuscated) GitHub PAT, which would have ended up in the Supabase `user_data` jsonb blob or the synced GitHub repo file.
+- **Docs**: `Architecture.md` rewritten (now "v2.0") to describe the local-first + optional cloud-sync model, fixed the stale "No Auth Required"/pure-localStorage framing, updated the weekly-snapshot example to the `checked`/CRDT shape, and added a "Sync (optional)" section describing the adapters.
+
+All 10 Vitest tests pass (`npx vitest run`).
+
+**Still pending from before:** confirm Supabase setup (schema.sql + Auth URL config) and test magic-link sign-in end-to-end; commit the Sprint 13.5 part-1-fix + Sprint 13.6 changes once verified.
