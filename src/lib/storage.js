@@ -5,7 +5,7 @@
 //
 // The week key is always the date of the most recent Friday (week starts Fri).
 
-import { DEFAULT_DAYS, DEFAULT_TASKS } from './data.js';
+import { DEFAULT_DAYS, DEFAULT_TASKS, DEFAULT_TAGS } from './data.js';
 import { localStoreAdapter } from './sync/LocalStorageAdapter.js';
 
 function pad(n) {
@@ -104,12 +104,7 @@ function migrateWeekState(s) {
 
 // Returns every 'ls-week-*' key currently in localStorage.
 function getAllWeekKeys() {
-  const keys = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && key.startsWith('ls-week-')) keys.push(key);
-  }
-  return keys;
+  return localStoreAdapter.keys().filter(k => k.startsWith('ls-week-'));
 }
 
 export function getState(offset = 0) {
@@ -160,16 +155,6 @@ export function saveTheme(theme) {
 
 // ── Tags ──
 
-export function getTags() {
-  const raw = localStorage.getItem('ls-tags');
-  if (raw) {
-    try { return JSON.parse(raw); } catch (e) { /* fall through */ }
-  }
-  return JSON.parse(JSON.stringify(DEFAULT_TAGS));
-}
-
-// Need a synchronous getTags for initial render without await
-import { DEFAULT_TAGS } from './data.js';
 export function getTagsSync() {
   const raw = localStorage.getItem('ls-tags');
   if (raw) {

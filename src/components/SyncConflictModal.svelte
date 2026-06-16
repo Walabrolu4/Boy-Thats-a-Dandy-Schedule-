@@ -7,9 +7,13 @@
   }
 </script>
 
+<svelte:window onkeydown={(e) => { if (e.key === 'Escape' && show) choose('cloud'); }} />
+
 {#if show}
-  <div class="modal-overlay">
-    <div class="modal-content">
+  <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="modal-overlay" onclick={() => choose('cloud')}>
+    <!-- svelte-ignore a11y_click_events_have_key_events --><!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
       <h3 style="margin: 0 0 12px 0; font-size: 18px; color: var(--text);">Sync conflict</h3>
       <p style="font-size: 14px; color: var(--text-muted); margin: 0 0 20px 0; line-height: 1.5;">
         The data saved in Dandy Sync is different from what's on this device. Which one do you want to keep?
@@ -65,5 +69,8 @@
   .conflict-btn.secondary {
     background: var(--surface-hover);
     color: var(--text);
+  }
+  .conflict-btn.secondary:hover {
+    background: var(--border-strong);
   }
 </style>

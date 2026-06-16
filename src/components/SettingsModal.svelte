@@ -29,6 +29,7 @@
   let authBusy = $state(false);
 
   let profile = $state({ display_name: '', avatar_url: null });
+  let profileLoading = $state(false);
   let profileStatus = $state('');
   let avatarBusy = $state(false);
 
@@ -61,9 +62,14 @@
 
   $effect(() => {
     if (syncConfig.provider === 'supabase' && supabaseUser) {
+      profileLoading = true;
+      profileStatus = '';
       supabaseAdapter.getProfile().then(p => {
         if (p) profile = { display_name: p.display_name || '', avatar_url: p.avatar_url };
-      }).catch(() => {});
+      }).catch(() => {}).finally(() => { profileLoading = false; });
+    } else {
+      profile = { display_name: '', avatar_url: null };
+      profileStatus = '';
     }
   });
 
@@ -86,11 +92,14 @@
     magicLinkStatus = '';
   }
 
+  let profileStatusTimer = null;
   async function saveDisplayName() {
     profileStatus = '';
     try {
       await supabaseAdapter.updateProfile({ display_name: profile.display_name });
       profileStatus = 'Saved!';
+      clearTimeout(profileStatusTimer);
+      profileStatusTimer = setTimeout(() => { profileStatus = ''; }, 3000);
     } catch (e) {
       profileStatus = 'Error: ' + e.message;
     }
@@ -246,15 +255,15 @@
         <div class="section-body">
           <div class="provider-options">
             <label class="provider-option">
-              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'none'} onchange={() => syncConfig.provider = 'none'} />
+              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'none'} onchange={() => { syncConfig.provider = 'none'; magicLinkStatus = ''; }} />
               Off
             </label>
             <label class="provider-option">
-              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'github'} onchange={() => syncConfig.provider = 'github'} />
+              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'github'} onchange={() => { syncConfig.provider = 'github'; magicLinkStatus = ''; }} />
               GitHub Sync (Bring Your Own)
             </label>
             <label class="provider-option">
-              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'supabase'} onchange={() => syncConfig.provider = 'supabase'} />
+              <input type="radio" name="syncProvider" checked={syncConfig.provider === 'supabase'} onchange={() => { syncConfig.provider = 'supabase'; magicLinkStatus = ''; }} />
               Dandy Sync (Managed)
             </label>
           </div>
@@ -307,6 +316,8 @@
           <div class="section-body">
             {#if !supabaseUser}
               <p class="section-hint">Sign in to Dandy Sync above to set up your profile.</p>
+            {:else if profileLoading}
+              <p class="section-hint">Loading profile…</p>
             {:else}
               <div class="profile-row">
                 {#if profile.avatar_url}

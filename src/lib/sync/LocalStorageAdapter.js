@@ -19,6 +19,15 @@ export class LocalStorageAdapter extends StorageAdapter {
       console.error(`Failed to stringify/save local storage key: ${key}`, e);
     }
   }
+
+  keys() {
+    const result = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k) result.push(k);
+    }
+    return result;
+  }
 }
 
 // Singleton instance for the local storage engine

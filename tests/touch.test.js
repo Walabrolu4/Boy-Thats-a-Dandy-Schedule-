@@ -35,13 +35,9 @@ describe('Touch Reorder Logic', () => {
   });
 
   it('long press (500ms) enters reorder mode and shows arrows', async () => {
-    const { getByText, queryByText } = render(WeekGrid, { 
-      weekState: { checked: {} }, 
-      editMode: false, 
-      scheduleVersion: 1, 
-      onStateChange: () => {}, 
-      onScheduleChange: () => {} 
-    });
+    // WeekGrid reads all state from globalStore (seeded by the storage mock above),
+    // not from props — it has no $props() declaration.
+    const { getByText, queryByText } = render(WeekGrid);
 
     const session = getByText('Yoga');
     

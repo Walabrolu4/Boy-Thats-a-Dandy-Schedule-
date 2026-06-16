@@ -133,8 +133,6 @@ export class SyncEngine {
     const config = getSyncConfig();
     const adapter = await this.getAdapter(config);
     if (!adapter) {
-      // Simulate network delay for purely local dev / not-yet-configured sync
-      await new Promise(r => setTimeout(r, 600));
       this.pending = false;
       return;
     }
